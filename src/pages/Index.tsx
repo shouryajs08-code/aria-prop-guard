@@ -308,7 +308,7 @@ const Landing = () => {
       <section
         ref={ctaReveal.ref}
         className="relative px-8 py-32 overflow-hidden"
-        style={{ backgroundColor: '#0A0A0A' }}
+        style={{ backgroundColor: '#000000' }}
       >
         {/* Radial gold glow */}
         <div
