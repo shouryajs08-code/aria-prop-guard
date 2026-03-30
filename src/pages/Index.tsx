@@ -157,7 +157,7 @@ const Landing = () => {
       </nav>
 
       {/* ─── Hero ─── */}
-      <section className="relative flex h-screen flex-col items-center justify-center px-8 overflow-hidden">
+      <section className="relative flex h-screen flex-col items-center justify-center px-8 overflow-hidden" style={{ backgroundColor: '#0A0A0A' }}>
         {/* Animated grid overlay */}
         <div className="absolute inset-0 opacity-[0.03]" style={{
           backgroundImage: 'linear-gradient(hsla(30,25%,95%,1) 1px, transparent 1px), linear-gradient(90deg, hsla(30,25%,95%,1) 1px, transparent 1px)',
@@ -240,7 +240,7 @@ const Landing = () => {
       </section>
 
       {/* ─── Features ─── */}
-      <section className="px-8 py-32" ref={featuresReveal.ref}>
+      <section className="px-8 py-32" ref={featuresReveal.ref} style={{ backgroundColor: '#111111' }}>
         <div className="mx-auto max-w-7xl">
           {/* Section label */}
           <div
@@ -268,14 +268,14 @@ const Landing = () => {
             Built for <span className="text-primary italic">serious</span> traders
           </h2>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3" style={{ border: '0.5px solid hsla(30,25%,95%,0.06)' }}>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((f, i) => (
               <div
                 key={f.title}
-                className="group p-8 transition-all duration-500 hover:bg-[hsla(30,25%,95%,0.02)]"
+                className="group p-8 transition-all duration-500"
                 style={{
-                  borderRight: (i % 3 !== 2) ? '0.5px solid hsla(30,25%,95%,0.06)' : 'none',
-                  borderBottom: i < 3 ? '0.5px solid hsla(30,25%,95%,0.06)' : 'none',
+                  backgroundColor: '#1A1A1A',
+                  border: '0.5px solid rgba(255,255,255,0.08)',
                   opacity: featuresReveal.visible ? 1 : 0,
                   transform: featuresReveal.visible ? 'translateY(0)' : 'translateY(30px)',
                   transitionDelay: `${(i + 2) * 100}ms`,
@@ -308,7 +308,7 @@ const Landing = () => {
       <section
         ref={ctaReveal.ref}
         className="relative px-8 py-32 overflow-hidden"
-        style={{ backgroundColor: '#0A0A0A' }}
+        style={{ backgroundColor: '#000000' }}
       >
         {/* Radial gold glow */}
         <div
@@ -357,7 +357,7 @@ const Landing = () => {
       </section>
 
       {/* ─── Footer ─── */}
-      <footer className="px-8 py-8" style={{ borderTop: '0.5px solid hsla(30,25%,95%,0.06)' }}>
+      <footer className="px-8 py-8" style={{ borderTop: '0.5px solid hsla(30,25%,95%,0.06)', backgroundColor: '#000000' }}>
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <span className="font-body text-muted-foreground" style={{ fontSize: 11, letterSpacing: '0.06em' }}>
             © 2026 ARIA PropGuard. All rights reserved.
