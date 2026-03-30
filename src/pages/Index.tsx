@@ -157,7 +157,7 @@ const Landing = () => {
       </nav>
 
       {/* ─── Hero ─── */}
-      <section className="relative flex h-screen flex-col items-center justify-center px-8 overflow-hidden">
+      <section className="relative flex h-screen flex-col items-center justify-center px-8 overflow-hidden" style={{ backgroundColor: '#0A0A0A' }}>
         {/* Animated grid overlay */}
         <div className="absolute inset-0 opacity-[0.03]" style={{
           backgroundImage: 'linear-gradient(hsla(30,25%,95%,1) 1px, transparent 1px), linear-gradient(90deg, hsla(30,25%,95%,1) 1px, transparent 1px)',
