@@ -268,7 +268,7 @@ const Landing = () => {
             Built for <span className="text-primary italic">serious</span> traders
           </h2>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3" style={{ border: '0.5px solid hsla(30,25%,95%,0.06)' }}>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((f, i) => (
               <div
                 key={f.title}
