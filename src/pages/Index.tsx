@@ -240,7 +240,7 @@ const Landing = () => {
       </section>
 
       {/* ─── Features ─── */}
-      <section className="px-8 py-32" ref={featuresReveal.ref}>
+      <section className="px-8 py-32" ref={featuresReveal.ref} style={{ backgroundColor: '#111111' }}>
         <div className="mx-auto max-w-7xl">
           {/* Section label */}
           <div
