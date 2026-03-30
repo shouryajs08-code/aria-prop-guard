@@ -14,7 +14,177 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      alerts: {
+        Row: {
+          account_id: string | null
+          alert_type: string
+          channel: string | null
+          id: string
+          message: string
+          sent_at: string | null
+          threshold_pct: number | null
+          user_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          alert_type: string
+          channel?: string | null
+          id?: string
+          message: string
+          sent_at?: string | null
+          threshold_pct?: number | null
+          user_id: string
+        }
+        Update: {
+          account_id?: string | null
+          alert_type?: string
+          channel?: string | null
+          id?: string
+          message?: string
+          sent_at?: string | null
+          threshold_pct?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "user_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prop_firms: {
+        Row: {
+          created_at: string
+          daily_loss_limit: number
+          id: string
+          max_drawdown: number
+          min_trading_days: number | null
+          name: string
+          profit_target: number
+        }
+        Insert: {
+          created_at?: string
+          daily_loss_limit: number
+          id?: string
+          max_drawdown: number
+          min_trading_days?: number | null
+          name: string
+          profit_target: number
+        }
+        Update: {
+          created_at?: string
+          daily_loss_limit?: number
+          id?: string
+          max_drawdown?: number
+          min_trading_days?: number | null
+          name?: string
+          profit_target?: number
+        }
+        Relationships: []
+      }
+      trades: {
+        Row: {
+          account_id: string | null
+          created_at: string
+          entry_price: number
+          exit_price: number
+          id: string
+          lot_size: number
+          pair: string
+          pnl: number
+          rr_ratio: number | null
+          rule_compliant: boolean | null
+          session: string | null
+          user_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          created_at?: string
+          entry_price: number
+          exit_price: number
+          id?: string
+          lot_size?: number
+          pair: string
+          pnl?: number
+          rr_ratio?: number | null
+          rule_compliant?: boolean | null
+          session?: string | null
+          user_id: string
+        }
+        Update: {
+          account_id?: string | null
+          created_at?: string
+          entry_price?: number
+          exit_price?: number
+          id?: string
+          lot_size?: number
+          pair?: string
+          pnl?: number
+          rr_ratio?: number | null
+          rule_compliant?: boolean | null
+          session?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trades_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "user_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_accounts: {
+        Row: {
+          account_size: number
+          challenge_day: number
+          created_at: string
+          current_daily_loss: number
+          current_drawdown: number
+          current_profit: number
+          firm_id: string | null
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          account_size?: number
+          challenge_day?: number
+          created_at?: string
+          current_daily_loss?: number
+          current_drawdown?: number
+          current_profit?: number
+          firm_id?: string | null
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          account_size?: number
+          challenge_day?: number
+          created_at?: string
+          current_daily_loss?: number
+          current_drawdown?: number
+          current_profit?: number
+          firm_id?: string | null
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_accounts_firm_id_fkey"
+            columns: ["firm_id"]
+            isOneToOne: false
+            referencedRelation: "prop_firms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
