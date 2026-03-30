@@ -272,10 +272,10 @@ const Landing = () => {
             {features.map((f, i) => (
               <div
                 key={f.title}
-                className="group p-8 transition-all duration-500 hover:bg-[hsla(30,25%,95%,0.02)]"
+                className="group p-8 transition-all duration-500"
                 style={{
-                  borderRight: (i % 3 !== 2) ? '0.5px solid hsla(30,25%,95%,0.06)' : 'none',
-                  borderBottom: i < 3 ? '0.5px solid hsla(30,25%,95%,0.06)' : 'none',
+                  backgroundColor: '#1A1A1A',
+                  border: '0.5px solid rgba(255,255,255,0.08)',
                   opacity: featuresReveal.visible ? 1 : 0,
                   transform: featuresReveal.visible ? 'translateY(0)' : 'translateY(30px)',
                   transitionDelay: `${(i + 2) * 100}ms`,
