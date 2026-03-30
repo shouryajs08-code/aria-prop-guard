@@ -357,7 +357,7 @@ const Landing = () => {
       </section>
 
       {/* ─── Footer ─── */}
-      <footer className="px-8 py-8" style={{ borderTop: '0.5px solid hsla(30,25%,95%,0.06)' }}>
+      <footer className="px-8 py-8" style={{ borderTop: '0.5px solid hsla(30,25%,95%,0.06)', backgroundColor: '#000000' }}>
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <span className="font-body text-muted-foreground" style={{ fontSize: 11, letterSpacing: '0.06em' }}>
             © 2026 ARIA PropGuard. All rights reserved.
