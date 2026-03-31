@@ -59,7 +59,7 @@ const Pricing = () => {
       if (!loaded) { toast.error('Failed to load payment gateway'); setProcessing(false); return; }
 
       const options = {
-        key: 'rzp_test_REPLACE_WITH_YOUR_KEY',
+        key: 'rzp_live_SXuE6O1pxh4tlC',
         amount: 199900,
         currency: 'INR',
         name: 'ARIA PropGuard',
