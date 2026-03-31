@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import LogTradeDialog from '@/components/LogTradeDialog';
 import {
   LayoutDashboard, BookOpen, Brain, Wallet, Bell, Calculator,
-  LogOut, ChevronLeft, ChevronRight, CircleDot
+  LogOut, ChevronLeft, ChevronRight, CircleDot, Clock
 } from 'lucide-react';
 
 interface UserAccount {
