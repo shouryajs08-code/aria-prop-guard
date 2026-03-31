@@ -34,47 +34,36 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY not configured");
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are ARIA, an elite prop firm trading coach. Analyse the trader's session and provide:\n1. What they did well\n2. Pattern weaknesses identified\n3. Specific rules to follow tomorrow\n4. Risk management score out of 10\nBe direct, precise, and actionable. Max 200 words.",
-          },
-          { role: "user", content: session_description },
-        ],
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1024,
+        system: "You are ARIA, an elite prop firm trading coach. Analyse the trader's session and provide:\n1. What they did well\n2. Pattern weaknesses identified\n3. Specific rules to follow tomorrow\n4. Risk management score out of 10\nBe direct, precise, and actionable. Max 200 words.",
+        messages: [{ role: "user", content: session_description }],
       }),
     });
 
-    if (!aiResponse.ok) {
-      const status = aiResponse.status;
-      if (status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limited. Please try again shortly." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      throw new Error(`AI gateway error: ${status}`);
+    if (!claudeResponse.ok) {
+      const errText = await claudeResponse.text();
+      console.error("Claude API error:", claudeResponse.status, errText);
+      return new Response(JSON.stringify({ error: "AI analysis failed" }), {
+        status: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const aiData = await aiResponse.json();
-    const analysis = aiData.choices?.[0]?.message?.content ?? "No analysis generated.";
+    const claudeData = await claudeResponse.json();
+    const analysis = claudeData.content?.[0]?.text ?? "No analysis generated.";
 
-    // Store in DB
     await supabase.from("ai_analyses").insert({
       user_id: user.id,
       session_description,
