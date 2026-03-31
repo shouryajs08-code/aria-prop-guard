@@ -1,10 +1,19 @@
+import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Navigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading: authLoading } = useAuth();
   const { loading: subLoading, isTrialExpired } = useSubscription();
+  const trialExpired = !subLoading && isTrialExpired();
+
+  useEffect(() => {
+    if (trialExpired) {
+      toast.error('Your trial has ended. Upgrade to continue.');
+    }
+  }, [trialExpired]);
 
   if (authLoading || subLoading) {
     return (
@@ -15,7 +24,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!user) return <Navigate to="/login" replace />;
-  if (isTrialExpired()) return <Navigate to="/pricing" replace />;
+  if (trialExpired) return <Navigate to="/pricing" replace />;
 
   return <>{children}</>;
 };

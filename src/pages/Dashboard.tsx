@@ -40,11 +40,11 @@ interface Trade {
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-  { icon: BookOpen, label: 'Journal', href: '/dashboard' },
+  { icon: BookOpen, label: 'Journal', href: '/journal' },
   { icon: Brain, label: 'AI Coach', href: '/ai-coach' },
-  { icon: Wallet, label: 'Accounts', href: '/dashboard' },
-  { icon: Bell, label: 'Alerts', href: '/dashboard' },
-  { icon: Calculator, label: 'Calculator', href: '/dashboard' },
+  { icon: Wallet, label: 'Accounts', href: '/accounts' },
+  { icon: Bell, label: 'Alerts', href: '/alerts' },
+  { icon: Calculator, label: 'Calculator', href: '/calculator' },
 ];
 
 function RiskGauge({ label, value, limit, unit }: { label: string; value: number; limit: string; unit: string }) {
@@ -189,12 +189,12 @@ const Dashboard = () => {
           {subscription?.status === 'trialing' && (() => {
             const daysLeft = Math.max(0, Math.ceil((new Date(subscription.trial_ends_at).getTime() - Date.now()) / 86400000));
             return (
-              <div className="mb-6 flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-5 py-3">
+              <div className="mb-6 flex items-center justify-between rounded-lg border border-primary/20 bg-gradient-to-r from-primary/10 to-primary/5 px-5 py-3">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-primary" />
-                  <span className="font-body text-sm text-primary font-medium">Trial ends in {daysLeft} day{daysLeft !== 1 ? 's' : ''}</span>
+                  <span className="text-lg">⚡</span>
+                  <span className="font-body text-sm text-primary font-medium">{daysLeft} day{daysLeft !== 1 ? 's' : ''} left in free trial — Upgrade to Pro</span>
                 </div>
-                <Link to="/pricing" className="font-body text-sm font-semibold text-primary hover:underline">Upgrade now →</Link>
+                <Link to="/pricing" className="rounded-md bg-primary px-4 py-1.5 font-body text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">Upgrade now</Link>
               </div>
             );
           })()}
