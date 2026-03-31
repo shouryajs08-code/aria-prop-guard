@@ -17,9 +17,9 @@ import Journal from "./pages/Journal";
 import Accounts from "./pages/Accounts";
 import Alerts from "./pages/Alerts";
 import Calculator from "./pages/Calculator";
+import PreTrade from "./pages/PreTrade";
 
 const queryClient = new QueryClient();
-
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
