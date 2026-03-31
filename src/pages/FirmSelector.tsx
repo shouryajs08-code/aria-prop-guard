@@ -67,6 +67,22 @@ const FirmSelector = () => {
       setLoading(false);
       return;
     }
+
+    // Create trial subscription if none exists
+    const { data: existingSub } = await supabase
+      .from('subscriptions')
+      .select('id')
+      .eq('user_id', user.id)
+      .limit(1);
+
+    if (!existingSub || existingSub.length === 0) {
+      await supabase.from('subscriptions').insert({
+        user_id: user.id,
+        plan: 'pro',
+        status: 'trialing',
+      });
+    }
+
     navigate('/dashboard');
   };
 
