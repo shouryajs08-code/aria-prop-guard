@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import FirmSelector from "./pages/FirmSelector";
 import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
+import AICoach from "./pages/AICoach";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/signup" element={<Signup />} />
             <Route path="/select-firm" element={<ProtectedRoute><FirmSelector /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/ai-coach" element={<ProtectedRoute><AICoach /></ProtectedRoute>} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

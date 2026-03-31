@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import LogTradeDialog from '@/components/LogTradeDialog';
 import {
   LayoutDashboard, BookOpen, Brain, Wallet, Bell, Calculator,
-  LogOut, ChevronLeft, ChevronRight, CircleDot
+  LogOut, ChevronLeft, ChevronRight, CircleDot, Clock
 } from 'lucide-react';
 
 interface UserAccount {
@@ -40,7 +41,7 @@ interface Trade {
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
   { icon: BookOpen, label: 'Journal', href: '/dashboard' },
-  { icon: Brain, label: 'AI Coach', href: '/dashboard' },
+  { icon: Brain, label: 'AI Coach', href: '/ai-coach' },
   { icon: Wallet, label: 'Accounts', href: '/dashboard' },
   { icon: Bell, label: 'Alerts', href: '/dashboard' },
   { icon: Calculator, label: 'Calculator', href: '/dashboard' },
@@ -69,6 +70,7 @@ function RiskGauge({ label, value, limit, unit }: { label: string; value: number
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
+  const { subscription } = useSubscription();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [account, setAccount] = useState<UserAccount | null>(null);
@@ -183,6 +185,19 @@ const Dashboard = () => {
         </header>
 
         <main className="flex-1 overflow-y-auto p-6">
+          {/* Trial banner */}
+          {subscription?.status === 'trialing' && (() => {
+            const daysLeft = Math.max(0, Math.ceil((new Date(subscription.trial_ends_at).getTime() - Date.now()) / 86400000));
+            return (
+              <div className="mb-6 flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-5 py-3">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-primary" />
+                  <span className="font-body text-sm text-primary font-medium">Trial ends in {daysLeft} day{daysLeft !== 1 ? 's' : ''}</span>
+                </div>
+                <Link to="/pricing" className="font-body text-sm font-semibold text-primary hover:underline">Upgrade now →</Link>
+              </div>
+            );
+          })()}
           {/* Account info */}
           <div className="mb-8">
             <h1 className="font-display text-2xl font-light">{firm?.name ?? 'Challenge'}</h1>
