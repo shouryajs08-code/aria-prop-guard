@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BookOpen, ArrowLeft, Search } from 'lucide-react';
+import { BookOpen, ArrowLeft, Search, Download } from 'lucide-react';
 
 interface Trade {
   id: string;
@@ -51,6 +52,31 @@ const Journal = () => {
   const winRate = filtered.length > 0
     ? ((filtered.filter(t => t.pnl > 0).length / filtered.length) * 100).toFixed(0)
     : '0';
+  const avgRR = filtered.length > 0
+    ? (filtered.reduce((s, t) => s + (t.rr_ratio ?? 0), 0) / filtered.length).toFixed(1)
+    : '0';
+
+  const exportCSV = () => {
+    const headers = ['Date', 'Pair', 'Session', 'Entry', 'Exit', 'Lot Size', 'RR', 'P&L'];
+    const rows = filtered.map(t => [
+      new Date(t.created_at).toLocaleDateString(),
+      t.pair,
+      t.session ?? '',
+      t.entry_price,
+      t.exit_price,
+      t.lot_size,
+      t.rr_ratio?.toFixed(1) ?? '',
+      t.pnl.toFixed(2),
+    ]);
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `trade-journal-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -62,11 +88,14 @@ const Journal = () => {
           <BookOpen className="h-5 w-5 text-primary" />
           <span className="font-display text-lg font-semibold tracking-wide">Trade Journal</span>
         </div>
+        <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1.5 border-border text-muted-foreground hover:text-foreground">
+          <Download className="h-3.5 w-3.5" /> Export CSV
+        </Button>
       </header>
 
       <main className="flex-1 p-6">
         {/* Stats */}
-        <div className="mb-6 grid grid-cols-3 gap-4">
+        <div className="mb-6 grid grid-cols-4 gap-4">
           <div className="rounded-lg border border-border bg-card p-4">
             <span className="font-body text-xs text-muted-foreground">Total Trades</span>
             <div className="mt-1 font-display text-2xl font-semibold text-foreground">{filtered.length}</div>
@@ -81,36 +110,28 @@ const Journal = () => {
             <span className="font-body text-xs text-muted-foreground">Win Rate</span>
             <div className="mt-1 font-display text-2xl font-semibold text-primary">{winRate}%</div>
           </div>
+          <div className="rounded-lg border border-border bg-card p-4">
+            <span className="font-body text-xs text-muted-foreground">Avg RR</span>
+            <div className="mt-1 font-display text-2xl font-semibold text-primary">{avgRR}</div>
+          </div>
         </div>
 
         {/* Filters */}
         <div className="mb-6 flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[160px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Filter by pair..."
-              value={filterPair}
-              onChange={(e) => setFilterPair(e.target.value)}
-              className="pl-9 bg-card border-border"
-            />
+            <Input placeholder="Filter by pair..." value={filterPair} onChange={(e) => setFilterPair(e.target.value)} className="pl-9 bg-card border-border" />
           </div>
           <Select value={filterSession} onValueChange={setFilterSession}>
-            <SelectTrigger className="w-[140px] bg-card border-border">
-              <SelectValue placeholder="Session" />
-            </SelectTrigger>
+            <SelectTrigger className="w-[140px] bg-card border-border"><SelectValue placeholder="Session" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Sessions</SelectItem>
               <SelectItem value="London">London</SelectItem>
               <SelectItem value="New York">New York</SelectItem>
-              <SelectItem value="Asia">Asia</SelectItem>
+              <SelectItem value="Asian">Asian</SelectItem>
             </SelectContent>
           </Select>
-          <Input
-            type="date"
-            value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
-            className="w-[160px] bg-card border-border"
-          />
+          <Input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} className="w-[160px] bg-card border-border" />
         </div>
 
         {/* Table */}

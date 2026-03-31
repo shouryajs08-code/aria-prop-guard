@@ -192,6 +192,33 @@ export type Database = {
           },
         ]
       }
+      usage_tracking: {
+        Row: {
+          ai_analyses_count: number
+          date: string
+          id: string
+          pre_trade_count: number
+          trade_logs_count: number
+          user_id: string
+        }
+        Insert: {
+          ai_analyses_count?: number
+          date?: string
+          id?: string
+          pre_trade_count?: number
+          trade_logs_count?: number
+          user_id: string
+        }
+        Update: {
+          ai_analyses_count?: number
+          date?: string
+          id?: string
+          pre_trade_count?: number
+          trade_logs_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_accounts: {
         Row: {
           account_size: number

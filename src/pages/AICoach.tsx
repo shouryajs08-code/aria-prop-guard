@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUsageLimits } from '@/hooks/useUsageLimits';
 import { supabase } from '@/integrations/supabase/client';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ interface Analysis {
 
 const AICoach = () => {
   const { user } = useAuth();
+  const { canUseAI, isPro, usage, incrementUsage } = useUsageLimits();
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentAnalysis, setCurrentAnalysis] = useState<string | null>(null);
@@ -37,6 +39,18 @@ const AICoach = () => {
 
   const handleAnalyse = async () => {
     if (!description.trim()) return;
+
+    if (!canUseAI) {
+      toast.error('Daily AI analysis limit reached. Upgrade to Pro for unlimited.');
+      return;
+    }
+
+    const allowed = await incrementUsage('ai_analyses_count');
+    if (!allowed) {
+      toast.error('Daily limit reached. Upgrade to Pro for unlimited.');
+      return;
+    }
+
     setLoading(true);
     setCurrentAnalysis(null);
 
@@ -69,6 +83,11 @@ const AICoach = () => {
         <span className="font-display text-lg font-semibold tracking-wide">
           <span className="text-primary">ARIA</span> AI Coach
         </span>
+        {!isPro && (
+          <span className="ml-auto font-body text-xs text-muted-foreground">
+            {usage.ai_analyses_count}/3 used today
+          </span>
+        )}
       </header>
 
       <main className="mx-auto max-w-2xl p-6">

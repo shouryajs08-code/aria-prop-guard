@@ -7,11 +7,18 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const DEFAULT_SYSTEM = `You are ARIA, an elite prop firm trading coach. Analyse the trader's session and provide:
+1. What they did well
+2. Pattern weaknesses identified
+3. Specific rules to follow tomorrow
+4. Risk management score out of 10
+Be direct, precise, and actionable. Max 200 words.`;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { session_description } = await req.json();
+    const { session_description, system_override } = await req.json();
     if (!session_description || typeof session_description !== "string") {
       return new Response(JSON.stringify({ error: "session_description is required" }), {
         status: 400,
@@ -47,7 +54,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
         max_tokens: 1024,
-        system: "You are ARIA, an elite prop firm trading coach. Analyse the trader's session and provide:\n1. What they did well\n2. Pattern weaknesses identified\n3. Specific rules to follow tomorrow\n4. Risk management score out of 10\nBe direct, precise, and actionable. Max 200 words.",
+        system: system_override || DEFAULT_SYSTEM,
         messages: [{ role: "user", content: session_description }],
       }),
     });

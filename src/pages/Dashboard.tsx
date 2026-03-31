@@ -2,11 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useUsageLimits } from '@/hooks/useUsageLimits';
 import { supabase } from '@/integrations/supabase/client';
 import LogTradeDialog from '@/components/LogTradeDialog';
+import UsageMeter from '@/components/UsageMeter';
+import UpgradeCTA from '@/components/UpgradeCTA';
 import {
   LayoutDashboard, BookOpen, Brain, Wallet, Bell, Calculator,
-  LogOut, ChevronLeft, ChevronRight, CircleDot, Clock
+  LogOut, ChevronLeft, ChevronRight, CircleDot, Clock, Crosshair
 } from 'lucide-react';
 
 interface UserAccount {
@@ -41,6 +44,7 @@ interface Trade {
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
   { icon: BookOpen, label: 'Journal', href: '/journal' },
+  { icon: Crosshair, label: 'Pre-Trade', href: '/pre-trade', pro: true },
   { icon: Brain, label: 'AI Coach', href: '/ai-coach' },
   { icon: Wallet, label: 'Accounts', href: '/accounts' },
   { icon: Bell, label: 'Alerts', href: '/alerts' },
@@ -71,6 +75,7 @@ function RiskGauge({ label, value, limit, unit }: { label: string; value: number
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const { subscription } = useSubscription();
+  const { isPro, usage } = useUsageLimits();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [account, setAccount] = useState<UserAccount | null>(null);
@@ -81,7 +86,6 @@ const Dashboard = () => {
   const fetchData = useCallback(async () => {
     if (!user) return;
 
-    // Fetch user account
     const { data: accounts } = await supabase
       .from('user_accounts')
       .select('*')
@@ -96,7 +100,6 @@ const Dashboard = () => {
     const acct = accounts[0];
     setAccount(acct);
 
-    // Fetch firm info
     if (acct.firm_id) {
       const { data: firmData } = await supabase
         .from('prop_firms')
@@ -106,7 +109,6 @@ const Dashboard = () => {
       if (firmData) setFirm(firmData);
     }
 
-    // Fetch last 10 trades
     const { data: tradeData } = await supabase
       .from('trades')
       .select('id, pair, session, entry_price, exit_price, pnl, rr_ratio, created_at')
@@ -139,6 +141,11 @@ const Dashboard = () => {
   const drawdownPct = firm ? (account.current_drawdown / (account.account_size * firm.max_drawdown / 100)) * 100 : 0;
   const profitPct = firm ? (account.current_profit / (account.account_size * firm.profit_target / 100)) * 100 : 0;
 
+  const isTrialing = subscription?.status === 'trialing';
+  const daysLeft = isTrialing
+    ? Math.max(0, Math.ceil((new Date(subscription!.trial_ends_at).getTime() - Date.now()) / 86400000))
+    : 0;
+
   return (
     <div className="flex min-h-screen bg-background">
       {/* Sidebar */}
@@ -155,10 +162,22 @@ const Dashboard = () => {
           {sidebarItems.map((item) => (
             <Link key={item.label} to={item.href} className="flex items-center gap-3 rounded-md px-3 py-2.5 font-body text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
               <item.icon className="h-4 w-4 shrink-0" />
-              {!collapsed && <span>{item.label}</span>}
+              {!collapsed && (
+                <span className="flex items-center gap-2">
+                  {item.label}
+                  {item.pro && !isPro && (
+                    <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-primary">PRO</span>
+                  )}
+                </span>
+              )}
             </Link>
           ))}
         </nav>
+        {!isPro && (
+          <div className="border-t border-border p-2">
+            <UpgradeCTA collapsed={collapsed} />
+          </div>
+        )}
         <div className="border-t border-border p-2">
           <button onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 font-body text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
             <LogOut className="h-4 w-4 shrink-0" />
@@ -185,19 +204,30 @@ const Dashboard = () => {
         </header>
 
         <main className="flex-1 overflow-y-auto p-6">
-          {/* Trial banner */}
-          {subscription?.status === 'trialing' && (() => {
-            const daysLeft = Math.max(0, Math.ceil((new Date(subscription.trial_ends_at).getTime() - Date.now()) / 86400000));
-            return (
-              <div className="mb-6 flex items-center justify-between rounded-lg border border-primary/20 bg-gradient-to-r from-primary/10 to-primary/5 px-5 py-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">⚡</span>
-                  <span className="font-body text-sm text-primary font-medium">{daysLeft} day{daysLeft !== 1 ? 's' : ''} left in free trial — Upgrade to Pro</span>
-                </div>
-                <Link to="/pricing" className="rounded-md bg-primary px-4 py-1.5 font-body text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">Upgrade now</Link>
+          {/* Trial / Upgrade banner */}
+          {!isPro && (
+            <div className="mb-6 flex items-center justify-between rounded-lg border border-primary/20 bg-gradient-to-r from-primary/10 to-primary/5 px-5 py-3">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">⚡</span>
+                <span className="font-body text-sm text-primary font-medium">
+                  {isTrialing
+                    ? `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left in free trial — Upgrade to Pro`
+                    : 'Upgrade to Pro for unlimited access'}
+                </span>
               </div>
-            );
-          })()}
+              <Link to="/pricing" className="rounded-md bg-primary px-4 py-1.5 font-body text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">Upgrade now</Link>
+            </div>
+          )}
+
+          {/* Usage meters (free users) */}
+          {!isPro && (
+            <div className="mb-6 grid grid-cols-3 gap-4">
+              <UsageMeter label="Trade Logs" used={usage.trade_logs_count} max={5} isPro={false} />
+              <UsageMeter label="AI Analyses" used={usage.ai_analyses_count} max={3} isPro={false} />
+              <UsageMeter label="Pre-Trade" used={usage.pre_trade_count} max={0} isPro={false} />
+            </div>
+          )}
+
           {/* Account info */}
           <div className="mb-8">
             <h1 className="font-display text-2xl font-light">{firm?.name ?? 'Challenge'}</h1>

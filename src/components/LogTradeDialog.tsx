@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUsageLimits } from '@/hooks/useUsageLimits';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 
 const pairs = ['EUR/USD', 'GBP/USD', 'AUD/USD', 'XAU/USD', 'USD/JPY'];
 const sessions = ['London', 'New York', 'Asian', 'Off-session'];
@@ -18,6 +20,7 @@ interface Props {
 
 const LogTradeDialog = ({ accountId, onTradeLogged }: Props) => {
   const { user } = useAuth();
+  const { canLogTrade, isPro, usage, incrementUsage } = useUsageLimits();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [pair, setPair] = useState('');
@@ -31,14 +34,12 @@ const LogTradeDialog = ({ accountId, onTradeLogged }: Props) => {
     const exit = parseFloat(exitPrice);
     const lot = parseFloat(lotSize);
     if (isNaN(entry) || isNaN(exit) || isNaN(lot)) return null;
-    // Simplified P&L: (exit - entry) * lot * 100000 for forex, adjust for gold
     const pipValue = pair === 'XAU/USD' ? 100 : pair === 'USD/JPY' ? 1000 : 100000;
     return parseFloat(((exit - entry) * lot * pipValue).toFixed(2));
   })();
 
   const rrRatio = (() => {
     if (pnl === null) return null;
-    // Simple RR based on absolute P&L ratio (placeholder)
     return Math.abs(pnl / 100);
   })();
 
@@ -48,6 +49,17 @@ const LogTradeDialog = ({ accountId, onTradeLogged }: Props) => {
       return;
     }
     if (pnl === null) return;
+
+    if (!canLogTrade) {
+      toast.error('Daily trade log limit reached (5/day). Upgrade to Pro for unlimited.');
+      return;
+    }
+
+    const allowed = await incrementUsage('trade_logs_count');
+    if (!allowed) {
+      toast.error('Daily limit reached. Upgrade to Pro for unlimited.');
+      return;
+    }
 
     setLoading(true);
     const { error } = await supabase.from('trades').insert({
@@ -68,7 +80,6 @@ const LogTradeDialog = ({ accountId, onTradeLogged }: Props) => {
       return;
     }
 
-    // Update user_accounts
     const { data: account } = await supabase
       .from('user_accounts')
       .select('current_profit, current_daily_loss')
@@ -105,69 +116,71 @@ const LogTradeDialog = ({ accountId, onTradeLogged }: Props) => {
       <DialogTrigger asChild>
         <Button variant="gold" size="sm">
           <Plus className="h-4 w-4 mr-1" /> Log Trade
+          {!isPro && <span className="ml-1 text-[10px] opacity-60">({usage.trade_logs_count}/5)</span>}
         </Button>
       </DialogTrigger>
       <DialogContent className="bg-card border-border text-foreground">
         <DialogHeader>
           <DialogTitle className="font-display text-xl text-foreground">Log Trade</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 mt-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="font-body text-xs uppercase tracking-wider text-muted-foreground">Pair</label>
-              <Select value={pair} onValueChange={setPair}>
-                <SelectTrigger className="mt-1 bg-background border-border">
-                  <SelectValue placeholder="Select pair" />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border">
-                  {pairs.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="font-body text-xs uppercase tracking-wider text-muted-foreground">Session</label>
-              <Select value={session} onValueChange={setSession}>
-                <SelectTrigger className="mt-1 bg-background border-border">
-                  <SelectValue placeholder="Select session" />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border">
-                  {sessions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+        {!canLogTrade ? (
+          <div className="py-6 text-center">
+            <p className="font-body text-sm text-muted-foreground mb-4">
+              You've reached the daily limit of 5 trade logs.
+            </p>
+            <Link to="/pricing">
+              <Button variant="gold">Upgrade to Pro</Button>
+            </Link>
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="font-body text-xs uppercase tracking-wider text-muted-foreground">Entry</label>
-              <Input type="number" step="any" value={entryPrice} onChange={e => setEntryPrice(e.target.value)} className="mt-1 bg-background border-border" />
-            </div>
-            <div>
-              <label className="font-body text-xs uppercase tracking-wider text-muted-foreground">Exit</label>
-              <Input type="number" step="any" value={exitPrice} onChange={e => setExitPrice(e.target.value)} className="mt-1 bg-background border-border" />
-            </div>
-            <div>
-              <label className="font-body text-xs uppercase tracking-wider text-muted-foreground">Lot Size</label>
-              <Input type="number" step="0.01" value={lotSize} onChange={e => setLotSize(e.target.value)} className="mt-1 bg-background border-border" />
-            </div>
-          </div>
-          {pnl !== null && (
-            <div className="rounded-lg border border-border bg-background p-3 font-body text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Estimated P&L</span>
-                <span className={pnl >= 0 ? 'text-safe' : 'text-danger'}>{pnl >= 0 ? '+' : ''}{pnl.toFixed(2)}</span>
+        ) : (
+          <div className="space-y-4 mt-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="font-body text-xs uppercase tracking-wider text-muted-foreground">Pair</label>
+                <Select value={pair} onValueChange={setPair}>
+                  <SelectTrigger className="mt-1 bg-background border-border"><SelectValue placeholder="Select pair" /></SelectTrigger>
+                  <SelectContent className="bg-card border-border">
+                    {pairs.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
-              {rrRatio !== null && (
-                <div className="flex justify-between mt-1">
-                  <span className="text-muted-foreground">RR Ratio</span>
-                  <span className="text-primary">{rrRatio.toFixed(1)}</span>
-                </div>
-              )}
+              <div>
+                <label className="font-body text-xs uppercase tracking-wider text-muted-foreground">Session</label>
+                <Select value={session} onValueChange={setSession}>
+                  <SelectTrigger className="mt-1 bg-background border-border"><SelectValue placeholder="Select session" /></SelectTrigger>
+                  <SelectContent className="bg-card border-border">
+                    {sessions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          )}
-          <Button onClick={handleSubmit} disabled={loading} variant="gold" className="w-full">
-            {loading ? 'Saving...' : 'Save Trade'}
-          </Button>
-        </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="font-body text-xs uppercase tracking-wider text-muted-foreground">Entry</label>
+                <Input type="number" step="any" value={entryPrice} onChange={e => setEntryPrice(e.target.value)} className="mt-1 bg-background border-border" />
+              </div>
+              <div>
+                <label className="font-body text-xs uppercase tracking-wider text-muted-foreground">Exit</label>
+                <Input type="number" step="any" value={exitPrice} onChange={e => setExitPrice(e.target.value)} className="mt-1 bg-background border-border" />
+              </div>
+              <div>
+                <label className="font-body text-xs uppercase tracking-wider text-muted-foreground">Lot Size</label>
+                <Input type="number" step="0.01" value={lotSize} onChange={e => setLotSize(e.target.value)} className="mt-1 bg-background border-border" />
+              </div>
+            </div>
+            {pnl !== null && (
+              <div className="rounded-lg border border-border bg-background p-3 font-body text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Estimated P&L</span>
+                  <span className={pnl >= 0 ? 'text-safe' : 'text-danger'}>{pnl >= 0 ? '+' : ''}{pnl.toFixed(2)}</span>
+                </div>
+              </div>
+            )}
+            <Button onClick={handleSubmit} disabled={loading} variant="gold" className="w-full">
+              {loading ? 'Saving...' : 'Save Trade'}
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
