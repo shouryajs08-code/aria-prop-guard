@@ -70,6 +70,7 @@ function RiskGauge({ label, value, limit, unit }: { label: string; value: number
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
+  const { subscription } = useSubscription();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [account, setAccount] = useState<UserAccount | null>(null);
