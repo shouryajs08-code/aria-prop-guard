@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import LogTradeDialog from '@/components/LogTradeDialog';
 import UsageMeter from '@/components/UsageMeter';
 import UpgradeCTA from '@/components/UpgradeCTA';
+import { toast } from 'sonner';
 import {
   LayoutDashboard, BookOpen, Brain, Wallet, Bell, Calculator,
   LogOut, ChevronLeft, ChevronRight, CircleDot, Clock, Crosshair
