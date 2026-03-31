@@ -40,11 +40,11 @@ interface Trade {
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-  { icon: BookOpen, label: 'Journal', href: '/dashboard' },
+  { icon: BookOpen, label: 'Journal', href: '/journal' },
   { icon: Brain, label: 'AI Coach', href: '/ai-coach' },
-  { icon: Wallet, label: 'Accounts', href: '/dashboard' },
-  { icon: Bell, label: 'Alerts', href: '/dashboard' },
-  { icon: Calculator, label: 'Calculator', href: '/dashboard' },
+  { icon: Wallet, label: 'Accounts', href: '/accounts' },
+  { icon: Bell, label: 'Alerts', href: '/alerts' },
+  { icon: Calculator, label: 'Calculator', href: '/calculator' },
 ];
 
 function RiskGauge({ label, value, limit, unit }: { label: string; value: number; limit: string; unit: string }) {
