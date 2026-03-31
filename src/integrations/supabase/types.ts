@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_analyses: {
+        Row: {
+          analysis: string
+          created_at: string
+          id: string
+          session_description: string
+          user_id: string
+        }
+        Insert: {
+          analysis: string
+          created_at?: string
+          id?: string
+          session_description: string
+          user_id: string
+        }
+        Update: {
+          analysis?: string
+          created_at?: string
+          id?: string
+          session_description?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       alerts: {
         Row: {
           account_id: string | null
