@@ -1,12 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import LogTradeDialog from '@/components/LogTradeDialog';
 import {
   LayoutDashboard, BookOpen, Brain, Wallet, Bell, Calculator,
   LogOut, ChevronLeft, ChevronRight, CircleDot
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
+
+interface UserAccount {
+  id: string;
+  account_size: number;
+  challenge_day: number;
+  current_daily_loss: number;
+  current_drawdown: number;
+  current_profit: number;
+  status: string;
+  firm_id: string | null;
+}
+
+interface PropFirm {
+  name: string;
+  daily_loss_limit: number;
+  max_drawdown: number;
+  profit_target: number;
+}
+
+interface Trade {
+  id: string;
+  pair: string;
+  session: string | null;
+  entry_price: number;
+  exit_price: number;
+  pnl: number;
+  rr_ratio: number | null;
+  created_at: string;
+}
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
@@ -17,23 +46,10 @@ const sidebarItems = [
   { icon: Calculator, label: 'Calculator', href: '/dashboard' },
 ];
 
-const mockTrades = [
-  { pair: 'EUR/USD', session: 'London', entry: '1.0845', exit: '1.0872', rr: '2.1', pnl: '+$270' },
-  { pair: 'GBP/JPY', session: 'Tokyo', entry: '188.42', exit: '188.15', rr: '1.5', pnl: '-$180' },
-  { pair: 'XAU/USD', session: 'New York', entry: '2,342', exit: '2,358', rr: '3.2', pnl: '+$480' },
-  { pair: 'NAS100', session: 'New York', entry: '18,245', exit: '18,312', rr: '2.8', pnl: '+$402' },
-  { pair: 'USD/CAD', session: 'London', entry: '1.3612', exit: '1.3598', rr: '1.1', pnl: '+$85' },
-];
-
-const alerts = [
-  { type: 'warning', msg: 'Daily loss at 3.2% — approaching 5% limit' },
-  { type: 'info', msg: 'Drawdown recovered from 6.1% to 4.8%' },
-  { type: 'success', msg: 'Day 7 target on track — $1,240 profit' },
-];
-
 function RiskGauge({ label, value, limit, unit }: { label: string; value: number; limit: string; unit: string }) {
-  const color = value > 85 ? 'bg-danger' : value > 50 ? 'bg-warning' : 'bg-safe';
-  const textColor = value > 85 ? 'text-danger' : value > 50 ? 'text-primary' : 'text-safe';
+  const pct = Math.min(value, 100);
+  const color = pct > 85 ? 'bg-danger' : pct > 50 ? 'bg-warning' : 'bg-safe';
+  const textColor = pct > 85 ? 'text-danger' : pct > 50 ? 'text-primary' : 'text-safe';
 
   return (
     <div className="rounded-lg border border-border bg-card p-6">
@@ -42,10 +58,10 @@ function RiskGauge({ label, value, limit, unit }: { label: string; value: number
         <span className="font-body text-xs text-muted-foreground">Limit: {limit}</span>
       </div>
       <div className={`mt-3 font-display text-4xl font-semibold ${textColor}`}>
-        {value}{unit}
+        {value.toFixed(1)}{unit}
       </div>
       <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
-        <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${Math.min(value, 100)}%` }} />
+        <div className={`h-full rounded-full transition-all duration-700 ${color}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
@@ -55,11 +71,71 @@ const Dashboard = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
+  const [account, setAccount] = useState<UserAccount | null>(null);
+  const [firm, setFirm] = useState<PropFirm | null>(null);
+  const [trades, setTrades] = useState<Trade[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = useCallback(async () => {
+    if (!user) return;
+
+    // Fetch user account
+    const { data: accounts } = await supabase
+      .from('user_accounts')
+      .select('*')
+      .eq('user_id', user.id)
+      .limit(1);
+
+    if (!accounts || accounts.length === 0) {
+      navigate('/select-firm', { replace: true });
+      return;
+    }
+
+    const acct = accounts[0];
+    setAccount(acct);
+
+    // Fetch firm info
+    if (acct.firm_id) {
+      const { data: firmData } = await supabase
+        .from('prop_firms')
+        .select('name, daily_loss_limit, max_drawdown, profit_target')
+        .eq('id', acct.firm_id)
+        .maybeSingle();
+      if (firmData) setFirm(firmData);
+    }
+
+    // Fetch last 10 trades
+    const { data: tradeData } = await supabase
+      .from('trades')
+      .select('id, pair, session, entry_price, exit_price, pnl, rr_ratio, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(10);
+    if (tradeData) setTrades(tradeData);
+
+    setLoading(false);
+  }, [user, navigate]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
   };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (!account) return null;
+
+  const dailyLossPct = firm ? (account.current_daily_loss / (account.account_size * firm.daily_loss_limit / 100)) * 100 : 0;
+  const drawdownPct = firm ? (account.current_drawdown / (account.account_size * firm.max_drawdown / 100)) * 100 : 0;
+  const profitPct = firm ? (account.current_profit / (account.account_size * firm.profit_target / 100)) * 100 : 0;
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -67,9 +143,7 @@ const Dashboard = () => {
       <aside className={`flex flex-col border-r border-border bg-card transition-all ${collapsed ? 'w-16' : 'w-56'}`}>
         <div className="flex h-16 items-center justify-between border-b border-border px-4">
           {!collapsed && (
-            <span className="font-display text-sm font-semibold tracking-wide">
-              <span className="text-primary">ARIA</span>
-            </span>
+            <span className="font-display text-sm font-semibold tracking-wide text-primary">ARIA</span>
           )}
           <button onClick={() => setCollapsed(!collapsed)} className="text-muted-foreground hover:text-foreground">
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -77,21 +151,14 @@ const Dashboard = () => {
         </div>
         <nav className="flex-1 space-y-1 p-2">
           {sidebarItems.map((item) => (
-            <Link
-              key={item.label}
-              to={item.href}
-              className="flex items-center gap-3 rounded-md px-3 py-2.5 font-body text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
+            <Link key={item.label} to={item.href} className="flex items-center gap-3 rounded-md px-3 py-2.5 font-body text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
               <item.icon className="h-4 w-4 shrink-0" />
               {!collapsed && <span>{item.label}</span>}
             </Link>
           ))}
         </nav>
         <div className="border-t border-border p-2">
-          <button
-            onClick={handleSignOut}
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 font-body text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
+          <button onClick={handleSignOut} className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 font-body text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
             <LogOut className="h-4 w-4 shrink-0" />
             {!collapsed && <span>Sign Out</span>}
           </button>
@@ -100,7 +167,6 @@ const Dashboard = () => {
 
       {/* Main */}
       <div className="flex flex-1 flex-col">
-        {/* Top nav */}
         <header className="flex h-16 items-center justify-between border-b border-border px-6">
           <div className="flex items-center gap-3">
             <span className="font-display text-lg font-semibold tracking-wide">
@@ -111,90 +177,88 @@ const Dashboard = () => {
             </span>
           </div>
           <div className="flex items-center gap-4">
+            <LogTradeDialog accountId={account.id} onTradeLogged={fetchData} />
             <span className="font-body text-sm text-muted-foreground">{user?.email}</span>
           </div>
         </header>
 
-        <div className="flex flex-1 overflow-hidden">
-          {/* Center content */}
-          <main className="flex-1 overflow-y-auto p-6">
-            {/* Account info */}
-            <div className="mb-8">
-              <h1 className="font-display text-2xl font-light">FTMO Challenge</h1>
-              <div className="mt-2 flex items-center gap-4 font-body text-sm text-muted-foreground">
-                <span>Account Size: <span className="text-foreground">$100,000</span></span>
-                <span className="text-border">|</span>
-                <span>Challenge Day: <span className="text-primary">7 / 30</span></span>
-              </div>
+        <main className="flex-1 overflow-y-auto p-6">
+          {/* Account info */}
+          <div className="mb-8">
+            <h1 className="font-display text-2xl font-light">{firm?.name ?? 'Challenge'}</h1>
+            <div className="mt-2 flex items-center gap-4 font-body text-sm text-muted-foreground">
+              <span>Account Size: <span className="text-foreground">${account.account_size.toLocaleString()}</span></span>
+              <span className="text-border">|</span>
+              <span>Challenge Day: <span className="text-primary">{account.challenge_day} / 30</span></span>
+              <span className="text-border">|</span>
+              <span>Status: <span className="text-safe capitalize">{account.status}</span></span>
             </div>
+          </div>
 
-            {/* Risk gauges */}
-            <div className="grid gap-4 md:grid-cols-3">
-              <RiskGauge label="Daily Loss Used" value={32} limit="5% ($5,000)" unit="%" />
-              <RiskGauge label="Max Drawdown" value={48} limit="10% ($10,000)" unit="%" />
-              <RiskGauge label="Profit Target" value={62} limit="10% ($10,000)" unit="%" />
+          {/* Risk gauges */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <RiskGauge
+              label="Daily Loss Used"
+              value={dailyLossPct}
+              limit={`${firm?.daily_loss_limit ?? 5}% ($${((account.account_size * (firm?.daily_loss_limit ?? 5)) / 100).toLocaleString()})`}
+              unit="%"
+            />
+            <RiskGauge
+              label="Max Drawdown"
+              value={drawdownPct}
+              limit={`${firm?.max_drawdown ?? 10}% ($${((account.account_size * (firm?.max_drawdown ?? 10)) / 100).toLocaleString()})`}
+              unit="%"
+            />
+            <RiskGauge
+              label="Profit Target"
+              value={profitPct}
+              limit={`${firm?.profit_target ?? 10}% ($${((account.account_size * (firm?.profit_target ?? 10)) / 100).toLocaleString()})`}
+              unit="%"
+            />
+          </div>
+
+          {/* Trade log */}
+          <div className="mt-8">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-xl font-light">Recent Trades</h2>
+              <span className="font-body text-xs text-muted-foreground">{trades.length} trades</span>
             </div>
-
-            {/* Trade log */}
-            <div className="mt-8">
-              <h2 className="font-display text-xl font-light">Today's Trades</h2>
-              <div className="mt-4 overflow-hidden rounded-lg border border-border">
-                <table className="w-full font-body text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-card">
-                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Pair</th>
-                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Session</th>
-                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">Entry → Exit</th>
-                      <th className="px-4 py-3 text-left font-medium text-muted-foreground">RR</th>
-                      <th className="px-4 py-3 text-right font-medium text-muted-foreground">P&L</th>
+            <div className="mt-4 overflow-hidden rounded-lg border border-border">
+              <table className="w-full font-body text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-card">
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Pair</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Session</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Entry → Exit</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">RR</th>
+                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">P&L</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {trades.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                        No trades yet. Click "Log Trade" to add your first trade.
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {mockTrades.map((t, i) => (
-                      <tr key={i} className="border-b border-border/50 hover:bg-card/50">
+                  ) : (
+                    trades.map((t) => (
+                      <tr key={t.id} className="border-b border-border/50 hover:bg-card/50">
                         <td className="px-4 py-3 font-medium">{t.pair}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{t.session}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{t.entry} → {t.exit}</td>
-                        <td className="px-4 py-3 text-primary">{t.rr}</td>
-                        <td className={`px-4 py-3 text-right font-medium ${t.pnl.startsWith('+') ? 'text-safe' : 'text-danger'}`}>{t.pnl}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{t.session ?? '—'}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{t.entry_price} → {t.exit_price}</td>
+                        <td className="px-4 py-3 text-primary">{t.rr_ratio?.toFixed(1) ?? '—'}</td>
+                        <td className={`px-4 py-3 text-right font-medium ${t.pnl >= 0 ? 'text-safe' : 'text-danger'}`}>
+                          {t.pnl >= 0 ? '+' : ''}${t.pnl.toFixed(2)}
+                        </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
-          </main>
-
-          {/* Right panel */}
-          <aside className="hidden w-80 border-l border-border p-6 lg:block">
-            <h3 className="font-display text-lg font-medium">Risk Alerts</h3>
-            <div className="mt-4 space-y-3">
-              {alerts.map((a, i) => (
-                <div
-                  key={i}
-                  className={`rounded-md border p-3 font-body text-sm ${
-                    a.type === 'warning' ? 'border-warning/30 bg-warning/5 text-warning' :
-                    a.type === 'success' ? 'border-safe/30 bg-safe/5 text-safe' :
-                    'border-border bg-card text-muted-foreground'
-                  }`}
-                >
-                  {a.msg}
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-8">
-              <h3 className="font-display text-lg font-medium">ARIA AI Coach</h3>
-              <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4">
-                <p className="font-body text-sm leading-relaxed text-foreground">
-                  "Your win rate improved 12% this week. Consider reducing lot size on GBP pairs — 
-                  your drawdown spikes correlate with high-volatility JPY crosses during Tokyo session."
-                </p>
-                <span className="mt-3 block font-body text-xs text-primary">ARIA AI • Just now</span>
-              </div>
-            </div>
-          </aside>
-        </div>
+          </div>
+        </main>
       </div>
     </div>
   );
