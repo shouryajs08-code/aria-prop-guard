@@ -28,6 +28,7 @@ const App = () => (
             <Route path="/signup" element={<Signup />} />
             <Route path="/select-firm" element={<ProtectedRoute><FirmSelector /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/pricing" element={<Pricing />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
