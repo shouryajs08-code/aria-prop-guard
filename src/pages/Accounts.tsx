@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUsageLimits } from '@/hooks/useUsageLimits';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ArrowLeft, Wallet, Plus, CircleDot } from 'lucide-react';
+import { ArrowLeft, Wallet, Plus, CircleDot, Crown } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Account {
@@ -30,6 +31,7 @@ interface PropFirm {
 
 const Accounts = () => {
   const { user } = useAuth();
+  const { isPro, maxAccounts } = useUsageLimits();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [firms, setFirms] = useState<PropFirm[]>([]);
   const [firmMap, setFirmMap] = useState<Record<string, PropFirm>>({});
@@ -59,8 +61,8 @@ const Accounts = () => {
 
   const handleCreate = async () => {
     if (!user || !selectedFirm || !accountSize) return;
-    if (accounts.length >= 3) {
-      toast.error('Maximum 3 accounts allowed on Pro plan');
+    if (accounts.length >= maxAccounts) {
+      toast.error(isPro ? 'Maximum 5 accounts on Pro plan' : 'Free users can only have 1 account. Upgrade to Pro for up to 5.');
       return;
     }
     setCreating(true);
@@ -80,6 +82,8 @@ const Accounts = () => {
     setCreating(false);
   };
 
+  const atLimit = accounts.length >= maxAccounts;
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="flex items-center justify-between border-b border-border px-6 py-4">
@@ -89,47 +93,46 @@ const Accounts = () => {
           </Link>
           <Wallet className="h-5 w-5 text-primary" />
           <span className="font-display text-lg font-semibold tracking-wide">Accounts</span>
+          <span className="font-body text-xs text-muted-foreground">{accounts.length}/{maxAccounts}</span>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
+        {atLimit && !isPro ? (
+          <Link to="/pricing">
             <Button variant="gold" size="sm" className="gap-1.5">
-              <Plus className="h-4 w-4" /> Add Account
+              <Crown className="h-3.5 w-3.5" /> Upgrade for more
             </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-card border-border">
-            <DialogHeader>
-              <DialogTitle className="font-display text-foreground">Add Prop Firm Account</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 pt-2">
-              <div>
-                <label className="font-body text-xs uppercase tracking-[0.15em] text-muted-foreground">Prop Firm</label>
-                <Select value={selectedFirm} onValueChange={setSelectedFirm}>
-                  <SelectTrigger className="mt-2 bg-background border-border">
-                    <SelectValue placeholder="Select firm" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {firms.map((f) => (
-                      <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="font-body text-xs uppercase tracking-[0.15em] text-muted-foreground">Account Size ($)</label>
-                <Input
-                  type="number"
-                  placeholder="e.g. 100000"
-                  value={accountSize}
-                  onChange={(e) => setAccountSize(e.target.value)}
-                  className="mt-2 bg-background border-border"
-                />
-              </div>
-              <Button onClick={handleCreate} disabled={creating || !selectedFirm || !accountSize} variant="gold" className="w-full">
-                {creating ? 'Creating...' : 'Create Account'}
+          </Link>
+        ) : (
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button variant="gold" size="sm" className="gap-1.5" disabled={atLimit}>
+                <Plus className="h-4 w-4" /> Add Account
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="bg-card border-border">
+              <DialogHeader>
+                <DialogTitle className="font-display text-foreground">Add Prop Firm Account</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-2">
+                <div>
+                  <label className="font-body text-xs uppercase tracking-[0.15em] text-muted-foreground">Prop Firm</label>
+                  <Select value={selectedFirm} onValueChange={setSelectedFirm}>
+                    <SelectTrigger className="mt-2 bg-background border-border"><SelectValue placeholder="Select firm" /></SelectTrigger>
+                    <SelectContent>
+                      {firms.map((f) => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="font-body text-xs uppercase tracking-[0.15em] text-muted-foreground">Account Size ($)</label>
+                  <Input type="number" placeholder="e.g. 100000" value={accountSize} onChange={(e) => setAccountSize(e.target.value)} className="mt-2 bg-background border-border" />
+                </div>
+                <Button onClick={handleCreate} disabled={creating || !selectedFirm || !accountSize} variant="gold" className="w-full">
+                  {creating ? 'Creating...' : 'Create Account'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </header>
 
       <main className="flex-1 p-6">
