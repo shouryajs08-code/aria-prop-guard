@@ -185,6 +185,19 @@ const Dashboard = () => {
         </header>
 
         <main className="flex-1 overflow-y-auto p-6">
+          {/* Trial banner */}
+          {subscription?.status === 'trialing' && (() => {
+            const daysLeft = Math.max(0, Math.ceil((new Date(subscription.trial_ends_at).getTime() - Date.now()) / 86400000));
+            return (
+              <div className="mb-6 flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-5 py-3">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-primary" />
+                  <span className="font-body text-sm text-primary font-medium">Trial ends in {daysLeft} day{daysLeft !== 1 ? 's' : ''}</span>
+                </div>
+                <Link to="/pricing" className="font-body text-sm font-semibold text-primary hover:underline">Upgrade now →</Link>
+              </div>
+            );
+          })()}
           {/* Account info */}
           <div className="mb-8">
             <h1 className="font-display text-2xl font-light">{firm?.name ?? 'Challenge'}</h1>
