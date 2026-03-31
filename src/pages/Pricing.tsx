@@ -59,11 +59,12 @@ const Pricing = () => {
       if (!loaded) { toast.error('Failed to load payment gateway'); setProcessing(false); return; }
 
       const options = {
-        key: 'rzp_test_REPLACE_WITH_YOUR_KEY',
+        key: 'rzp_live_SXuE6O1pxh4tlC',
         amount: 199900,
         currency: 'INR',
         name: 'ARIA PropGuard',
         description: 'Pro Monthly Subscription',
+        image: '/logo.png',
         prefill: { email: user.email },
         theme: { color: '#B8942A' },
         handler: async (response: any) => {
@@ -80,7 +81,7 @@ const Pricing = () => {
             if (upsertErr) {
               toast.error('Payment received but failed to activate. Contact support.');
             } else {
-              toast.success('Welcome to Pro! 🎉');
+              toast.success('Welcome to ARIA Pro! 🎉');
               navigate('/dashboard');
             }
           } catch {
