@@ -81,7 +81,7 @@ const Pricing = () => {
             if (upsertErr) {
               toast.error('Payment received but failed to activate. Contact support.');
             } else {
-              toast.success('Welcome to Pro! 🎉');
+              toast.success('Welcome to ARIA Pro! 🎉');
               navigate('/dashboard');
             }
           } catch {
