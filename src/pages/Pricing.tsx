@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Check, Shield, ArrowLeft } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Check, Shield, ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 const features = [
   'Real-Time Rule Monitor',
@@ -12,16 +15,88 @@ const features = [
   'Challenge Forecaster',
 ];
 
-const Pricing = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
-  const handleSubscribe = () => {
-    if (!user) {
+const Pricing = () => {
+  const { user, session } = useAuth();
+  const navigate = useNavigate();
+  const [processing, setProcessing] = useState(false);
+
+  const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) { resolve(true); return; }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleSubscribe = async () => {
+    if (!user || !session) {
       navigate('/signup');
       return;
     }
-    // TODO: Integrate Razorpay checkout
+
+    setProcessing(true);
+
+    try {
+      const loaded = await loadRazorpayScript();
+      if (!loaded) { toast.error('Failed to load payment gateway'); setProcessing(false); return; }
+
+      // Create order via edge function
+      const { data, error } = await supabase.functions.invoke('razorpay', {
+        body: { action: 'create_order' },
+      });
+
+      if (error || !data?.order_id) {
+        toast.error('Could not create payment order');
+        setProcessing(false);
+        return;
+      }
+
+      const options = {
+        key: data.key_id,
+        amount: data.amount,
+        currency: 'INR',
+        name: 'ARIA PropGuard',
+        description: 'PropGuard Pro — Monthly Subscription',
+        order_id: data.order_id,
+        handler: async (response: any) => {
+          // Verify payment
+          const { error: verifyErr } = await supabase.functions.invoke('razorpay', {
+            body: {
+              action: 'verify_payment',
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            },
+          });
+
+          if (verifyErr) {
+            toast.error('Payment verification failed');
+          } else {
+            toast.success('Subscription activated!');
+            navigate('/dashboard');
+          }
+          setProcessing(false);
+        },
+        prefill: { email: user.email },
+        theme: { color: '#B8942A' },
+        modal: { ondismiss: () => setProcessing(false) },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch {
+      toast.error('Something went wrong');
+      setProcessing(false);
+    }
   };
 
   return (
@@ -86,11 +161,12 @@ const Pricing = () => {
 
             <Button
               onClick={handleSubscribe}
+              disabled={processing}
               variant="gold"
               size="lg"
               className="mt-8 w-full text-base"
             >
-              Start 7-Day Free Trial
+              {processing ? <><Loader2 className="h-4 w-4 animate-spin" /> Processing...</> : 'Start 7-Day Free Trial'}
             </Button>
 
             <p className="mt-4 text-center font-body text-xs text-muted-foreground" style={{ opacity: 0.4 }}>
