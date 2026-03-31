@@ -64,6 +64,7 @@ const Pricing = () => {
         currency: 'INR',
         name: 'ARIA PropGuard',
         description: 'Pro Monthly Subscription',
+        image: '/logo.png',
         prefill: { email: user.email },
         theme: { color: '#B8942A' },
         handler: async (response: any) => {
