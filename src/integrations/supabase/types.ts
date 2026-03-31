@@ -85,6 +85,36 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          created_at: string
+          id: string
+          plan: string
+          razorpay_subscription_id: string | null
+          status: string
+          trial_ends_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          plan?: string
+          razorpay_subscription_id?: string | null
+          status?: string
+          trial_ends_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          plan?: string
+          razorpay_subscription_id?: string | null
+          status?: string
+          trial_ends_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       trades: {
         Row: {
           account_id: string | null
