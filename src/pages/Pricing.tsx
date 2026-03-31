@@ -58,43 +58,36 @@ const Pricing = () => {
       const loaded = await loadRazorpayScript();
       if (!loaded) { toast.error('Failed to load payment gateway'); setProcessing(false); return; }
 
-      const { data, error } = await supabase.functions.invoke('razorpay', {
-        body: { action: 'create_order' },
-      });
-
-      if (error || !data?.order_id) {
-        toast.error('Could not create payment order');
-        setProcessing(false);
-        return;
-      }
-
       const options = {
-        key: data.key_id,
-        amount: data.amount,
+        key: 'rzp_test_REPLACE_WITH_YOUR_KEY',
+        amount: 199900,
         currency: 'INR',
         name: 'ARIA PropGuard',
-        description: 'PropGuard Pro — Monthly Subscription',
-        order_id: data.order_id,
+        description: 'Pro Monthly Subscription',
+        prefill: { email: user.email },
+        theme: { color: '#B8942A' },
         handler: async (response: any) => {
-          const { error: verifyErr } = await supabase.functions.invoke('razorpay', {
-            body: {
-              action: 'verify_payment',
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            },
-          });
+          try {
+            const { error: upsertErr } = await supabase
+              .from('subscriptions')
+              .upsert({
+                user_id: user.id,
+                status: 'active',
+                plan: 'pro',
+                razorpay_subscription_id: response.razorpay_payment_id,
+              }, { onConflict: 'user_id' });
 
-          if (verifyErr) {
-            toast.error('Payment verification failed');
-          } else {
-            toast.success('Subscription activated!');
-            navigate('/dashboard');
+            if (upsertErr) {
+              toast.error('Payment received but failed to activate. Contact support.');
+            } else {
+              toast.success('Welcome to Pro! 🎉');
+              navigate('/dashboard');
+            }
+          } catch {
+            toast.error('Payment received but activation failed.');
           }
           setProcessing(false);
         },
-        prefill: { email: user.email },
-        theme: { color: '#B8942A' },
         modal: { ondismiss: () => setProcessing(false) },
       };
 
