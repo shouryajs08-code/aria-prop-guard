@@ -13,6 +13,10 @@ import FirmSelector from "./pages/FirmSelector";
 import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
 import AICoach from "./pages/AICoach";
+import Journal from "./pages/Journal";
+import Accounts from "./pages/Accounts";
+import Alerts from "./pages/Alerts";
+import Calculator from "./pages/Calculator";
 
 const queryClient = new QueryClient();
 
