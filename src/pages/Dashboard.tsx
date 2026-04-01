@@ -152,6 +152,7 @@ const Dashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-background">
+      {showSuccess && <ProSuccessOverlay />}
       {/* Sidebar */}
       <aside className={`flex flex-col border-r border-border bg-card transition-all ${collapsed ? 'w-16' : 'w-56'}`}>
         <div className="flex h-16 items-center justify-between border-b border-border px-4">
