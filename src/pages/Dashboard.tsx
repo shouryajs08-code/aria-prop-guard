@@ -3,10 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useUsageLimits } from '@/hooks/useUsageLimits';
+import { useRazorpay } from '@/hooks/useRazorpay';
 import { supabase } from '@/integrations/supabase/client';
 import LogTradeDialog from '@/components/LogTradeDialog';
 import UsageMeter from '@/components/UsageMeter';
 import UpgradeCTA from '@/components/UpgradeCTA';
+import ProSuccessOverlay from '@/components/ProSuccessOverlay';
 import { toast } from 'sonner';
 import {
   LayoutDashboard, BookOpen, Brain, Wallet, Bell, Calculator,
@@ -83,48 +85,7 @@ const Dashboard = () => {
   const [firm, setFirm] = useState<PropFirm | null>(null);
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
-  const [upgrading, setUpgrading] = useState(false);
-
-  const handleUpgrade = async () => {
-    if (!user) { navigate('/login'); return; }
-    setUpgrading(true);
-    try {
-      const loaded = await new Promise<boolean>((resolve) => {
-        if ((window as any).Razorpay) { resolve(true); return; }
-        const s = document.createElement('script');
-        s.src = 'https://checkout.razorpay.com/v1/checkout.js';
-        s.onload = () => resolve(true);
-        s.onerror = () => resolve(false);
-        document.body.appendChild(s);
-      });
-      if (!loaded) { toast.error('Failed to load payment gateway'); setUpgrading(false); return; }
-      const rzp = new (window as any).Razorpay({
-        key: 'rzp_live_SXuE6O1pxh4tlC',
-        amount: 199900,
-        currency: 'INR',
-        name: 'ARIA PropGuard',
-        description: 'Pro Monthly Subscription',
-        image: '/logo.png',
-        prefill: { email: user.email },
-        theme: { color: '#B8942A' },
-        handler: async (response: any) => {
-          await supabase.from('subscriptions').upsert({
-            user_id: user.id,
-            status: 'active',
-            plan: 'pro',
-            razorpay_subscription_id: response.razorpay_payment_id,
-          }, { onConflict: 'user_id' });
-          toast.success('Welcome to ARIA Pro! 🎉');
-          window.location.reload();
-        },
-        modal: { ondismiss: () => setUpgrading(false) },
-      });
-      rzp.open();
-    } catch {
-      toast.error('Something went wrong');
-      setUpgrading(false);
-    }
-  };
+  const { openCheckout, processing: upgrading, showSuccess } = useRazorpay();
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -191,6 +152,7 @@ const Dashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-background">
+      {showSuccess && <ProSuccessOverlay />}
       {/* Sidebar */}
       <aside className={`flex flex-col border-r border-border bg-card transition-all ${collapsed ? 'w-16' : 'w-56'}`}>
         <div className="flex h-16 items-center justify-between border-b border-border px-4">
@@ -258,7 +220,7 @@ const Dashboard = () => {
                     : 'Upgrade to Pro for unlimited access'}
                 </span>
               </div>
-              <button onClick={handleUpgrade} disabled={upgrading} className="rounded-md bg-primary px-4 py-1.5 font-body text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">{upgrading ? 'Processing...' : 'Upgrade now'}</button>
+              <button onClick={openCheckout} disabled={upgrading} className="rounded-md bg-primary px-4 py-1.5 font-body text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">{upgrading ? 'Processing...' : 'Upgrade now'}</button>
             </div>
           )}
 

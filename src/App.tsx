@@ -17,7 +17,8 @@ import Journal from "./pages/Journal";
 import Accounts from "./pages/Accounts";
 import Alerts from "./pages/Alerts";
 import Calculator from "./pages/Calculator";
-import PreTrade from "./pages/PreTrade";
+import PreTrade from './pages/PreTrade';
+import AdminVerifyPro from './pages/AdminVerifyPro';
 
 const queryClient = new QueryClient();
 const App = () => (
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
             <Route path="/calculator" element={<ProtectedRoute><Calculator /></ProtectedRoute>} />
             <Route path="/pre-trade" element={<ProtectedRoute><PreTrade /></ProtectedRoute>} />
+            <Route path="/admin/verify-pro" element={<ProtectedRoute><AdminVerifyPro /></ProtectedRoute>} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

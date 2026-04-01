@@ -1,107 +1,37 @@
-import { useState } from 'react';
+import { Check, Shield, ArrowLeft, Loader2, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { Check, Shield, ArrowLeft, Loader2, X } from 'lucide-react';
+import { useRazorpay } from '@/hooks/useRazorpay';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import ProSuccessOverlay from '@/components/ProSuccessOverlay';
 
 const proFeatures = [
   'Unlimited Rule Monitoring',
   'WhatsApp Alerts',
-  'AI Coach (10 analyses/month)',
+  'AI Coach (unlimited)',
   'Up to 3 Prop Firm Accounts',
   'Auto Trade Journal',
   'Challenge Forecaster',
+  'Pre-Trade Analysis',
 ];
 
 const trialFeatures = [
   { text: 'Full dashboard access', included: true },
-  { text: 'AI Coach (limited)', included: true },
+  { text: 'AI Coach (3/day)', included: true },
   { text: '1 Prop Firm Account', included: true },
   { text: 'WhatsApp Alerts', included: false },
   { text: 'Multiple accounts', included: false },
-  { text: 'Priority support', included: false },
+  { text: 'Pre-Trade Analysis', included: false },
 ];
 
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
-
 const Pricing = () => {
-  const { user, session } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [processing, setProcessing] = useState(false);
-
-  const loadRazorpayScript = (): Promise<boolean> => {
-    return new Promise((resolve) => {
-      if (window.Razorpay) { resolve(true); return; }
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
-
-  const handleSubscribe = async () => {
-    if (!user || !session) {
-      navigate('/signup');
-      return;
-    }
-
-    setProcessing(true);
-
-    try {
-      const loaded = await loadRazorpayScript();
-      if (!loaded) { toast.error('Failed to load payment gateway'); setProcessing(false); return; }
-
-      const options = {
-        key: 'rzp_live_SXuE6O1pxh4tlC',
-        amount: 199900,
-        currency: 'INR',
-        name: 'ARIA PropGuard',
-        description: 'Pro Monthly Subscription',
-        image: '/logo.png',
-        prefill: { email: user.email },
-        theme: { color: '#B8942A' },
-        handler: async (response: any) => {
-          try {
-            const { error: upsertErr } = await supabase
-              .from('subscriptions')
-              .upsert({
-                user_id: user.id,
-                status: 'active',
-                plan: 'pro',
-                razorpay_subscription_id: response.razorpay_payment_id,
-              }, { onConflict: 'user_id' });
-
-            if (upsertErr) {
-              toast.error('Payment received but failed to activate. Contact support.');
-            } else {
-              toast.success('Welcome to ARIA Pro! 🎉');
-              navigate('/dashboard');
-            }
-          } catch {
-            toast.error('Payment received but activation failed.');
-          }
-          setProcessing(false);
-        },
-        modal: { ondismiss: () => setProcessing(false) },
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } catch {
-      toast.error('Something went wrong');
-      setProcessing(false);
-    }
-  };
+  const { openCheckout, processing, showSuccess } = useRazorpay();
 
   return (
     <div className="flex min-h-screen flex-col" style={{ backgroundColor: '#0A0A0A' }}>
+      {showSuccess && <ProSuccessOverlay />}
       <header className="flex items-center justify-between px-8 py-6">
         <button onClick={() => navigate('/')} className="flex items-center gap-2 font-body text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" />
@@ -179,7 +109,7 @@ const Pricing = () => {
                 ))}
               </ul>
               <Button
-                onClick={handleSubscribe}
+                onClick={() => user ? openCheckout() : navigate('/signup')}
                 disabled={processing}
                 variant="gold"
                 size="lg"
