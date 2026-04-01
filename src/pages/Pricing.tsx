@@ -31,6 +31,7 @@ const Pricing = () => {
 
   return (
     <div className="flex min-h-screen flex-col" style={{ backgroundColor: '#0A0A0A' }}>
+      {showSuccess && <ProSuccessOverlay />}
       <header className="flex items-center justify-between px-8 py-6">
         <button onClick={() => navigate('/')} className="flex items-center gap-2 font-body text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" />
