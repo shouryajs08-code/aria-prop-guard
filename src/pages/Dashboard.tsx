@@ -220,7 +220,7 @@ const Dashboard = () => {
                     : 'Upgrade to Pro for unlimited access'}
                 </span>
               </div>
-              <button onClick={handleUpgrade} disabled={upgrading} className="rounded-md bg-primary px-4 py-1.5 font-body text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">{upgrading ? 'Processing...' : 'Upgrade now'}</button>
+              <button onClick={openCheckout} disabled={upgrading} className="rounded-md bg-primary px-4 py-1.5 font-body text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">{upgrading ? 'Processing...' : 'Upgrade now'}</button>
             </div>
           )}
 
