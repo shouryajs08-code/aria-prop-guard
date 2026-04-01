@@ -85,7 +85,7 @@ const Dashboard = () => {
   const [firm, setFirm] = useState<PropFirm | null>(null);
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
-  const [upgrading, setUpgrading] = useState(false);
+  const { openCheckout, processing: upgrading, showSuccess } = useRazorpay();
 
   const handleUpgrade = async () => {
     if (!user) { navigate('/login'); return; }
