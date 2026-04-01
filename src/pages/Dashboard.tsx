@@ -3,10 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useUsageLimits } from '@/hooks/useUsageLimits';
+import { useRazorpay } from '@/hooks/useRazorpay';
 import { supabase } from '@/integrations/supabase/client';
 import LogTradeDialog from '@/components/LogTradeDialog';
 import UsageMeter from '@/components/UsageMeter';
 import UpgradeCTA from '@/components/UpgradeCTA';
+import ProSuccessOverlay from '@/components/ProSuccessOverlay';
 import { toast } from 'sonner';
 import {
   LayoutDashboard, BookOpen, Brain, Wallet, Bell, Calculator,
