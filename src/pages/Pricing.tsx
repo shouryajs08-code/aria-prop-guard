@@ -109,7 +109,7 @@ const Pricing = () => {
                 ))}
               </ul>
               <Button
-                onClick={handleSubscribe}
+                onClick={() => user ? openCheckout() : navigate('/signup')}
                 disabled={processing}
                 variant="gold"
                 size="lg"

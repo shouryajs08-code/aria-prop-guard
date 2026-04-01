@@ -29,7 +29,7 @@ export function useUsageLimits() {
   const [usage, setUsage] = useState<Usage>({ trade_logs_count: 0, ai_analyses_count: 0, pre_trade_count: 0 });
   const [loading, setLoading] = useState(true);
 
-  const isPro = subscription?.status === 'active' || (subscription?.status === 'pro');
+  const isPro = subscription?.status === 'active' && subscription?.plan === 'pro';
   const limits = isPro ? PRO_LIMITS : FREE_LIMITS;
 
   const fetchUsage = useCallback(async () => {
