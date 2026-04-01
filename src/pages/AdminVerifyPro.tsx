@@ -53,20 +53,46 @@ const AdminVerifyPro = () => {
 
   const grantPro = async () => {
     setGranting(true);
-    const { error } = await supabase.from('subscriptions').upsert({
-      user_id: user.id, status: 'active', plan: 'pro', razorpay_subscription_id: 'admin_grant',
-    } as any, { onConflict: 'user_id' });
-    if (error) toast.error('Failed: ' + error.message);
-    else { toast.success('Pro access granted!'); fetchData(); }
+    try {
+      const { data: existing } = await supabase
+        .from('subscriptions')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      let error;
+      if (existing) {
+        ({ error } = await supabase
+          .from('subscriptions')
+          .update({ status: 'active', plan: 'pro', razorpay_subscription_id: 'admin_grant' })
+          .eq('user_id', user.id));
+      } else {
+        ({ error } = await supabase
+          .from('subscriptions')
+          .insert({ user_id: user.id, status: 'active', plan: 'pro', razorpay_subscription_id: 'admin_grant' }));
+      }
+
+      if (error) toast.error('Failed: ' + error.message);
+      else {
+        toast.success('Pro access granted! Reloading…');
+        setTimeout(() => window.location.reload(), 1000);
+      }
+    } catch (e: any) {
+      toast.error('Failed: ' + e.message);
+    }
     setGranting(false);
   };
 
   const revokePro = async () => {
-    const { error } = await supabase.from('subscriptions').upsert({
-      user_id: user.id, status: 'trialing', plan: 'free', razorpay_subscription_id: null,
-    } as any, { onConflict: 'user_id' });
+    const { error } = await supabase
+      .from('subscriptions')
+      .update({ status: 'trialing', plan: 'free', razorpay_subscription_id: null })
+      .eq('user_id', user.id);
     if (error) toast.error('Failed');
-    else { toast.success('Revoked to free'); fetchData(); }
+    else {
+      toast.success('Revoked to free. Reloading…');
+      setTimeout(() => window.location.reload(), 1000);
+    }
   };
 
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-background"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
