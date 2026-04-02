@@ -603,7 +603,11 @@ const Landing = () => {
       <footer className="px-8 py-8" style={{ backgroundColor: '#000000', borderTop: '0.5px solid rgba(245,242,238,0.06)' }}>
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <span className="font-body" style={{ fontSize: 11, letterSpacing: '0.06em', color: 'rgba(245,242,238,0.3)' }}>© 2026 ARIA PropGuard. All rights reserved.</span>
-          <span className="font-display text-primary" style={{ fontSize: 14, fontWeight: 300 }}>ARIA</span>
+          <div className="flex items-center gap-6">
+            <Link to="/privacy" className="font-body text-[11px] tracking-wide text-[#F5F2EE]/30 hover:text-[#F5F2EE]/60 transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="font-body text-[11px] tracking-wide text-[#F5F2EE]/30 hover:text-[#F5F2EE]/60 transition-colors">Terms of Service</Link>
+            <span className="font-display text-primary" style={{ fontSize: 14, fontWeight: 300 }}>ARIA</span>
+          </div>
         </div>
       </footer>
     </div>
