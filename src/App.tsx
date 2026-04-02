@@ -44,6 +44,8 @@ const App = () => (
             <Route path="/pre-trade" element={<ProtectedRoute><PreTrade /></ProtectedRoute>} />
             <Route path="/admin/verify-pro" element={<ProtectedRoute><AdminVerifyPro /></ProtectedRoute>} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
