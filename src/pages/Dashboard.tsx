@@ -44,6 +44,14 @@ interface Trade {
   created_at: string;
 }
 
+interface LatestAlert {
+  id: string;
+  alert_type: string;
+  message: string;
+  channel: string | null;
+  sent_at: string | null;
+}
+
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
   { icon: BookOpen, label: 'Journal', href: '/journal' },
