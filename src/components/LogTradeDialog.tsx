@@ -96,16 +96,15 @@ const LogTradeDialog = ({ accountId, onTradeLogged }: Props) => {
       }
       await supabase.from('user_accounts').update(updates).eq('id', accountId);
 
-      // Check breach thresholds and send WhatsApp alerts for Pro users
+      // Check breach thresholds and send Telegram alerts for Pro users
       if (isPro && pnl < 0) {
-        // Get account's firm limits and whatsapp number
         const { data: fullAccount } = await supabase
           .from('user_accounts')
-          .select('account_size, firm_id, whatsapp_number')
+          .select('account_size, firm_id, telegram_chat_id')
           .eq('id', accountId)
           .maybeSingle();
 
-        if (fullAccount && (fullAccount as any).whatsapp_number && fullAccount.firm_id) {
+        if (fullAccount && fullAccount.telegram_chat_id && fullAccount.firm_id) {
           const { data: firmData } = await supabase
             .from('prop_firms')
             .select('daily_loss_limit')
@@ -118,29 +117,29 @@ const LogTradeDialog = ({ accountId, onTradeLogged }: Props) => {
             const remaining = Math.max(0, dailyLossLimit - newDailyLoss).toFixed(2);
 
             const thresholds = [
-              { pct: 95, msg: `🚨 ARIA CRITICAL: 95% of daily limit reached. ONE more losing trade could breach your account. $${remaining} remaining.` },
-              { pct: 85, msg: `🔴 ARIA Alert: Daily loss at 85% — high risk. Consider stopping for today. $${remaining} remaining.` },
-              { pct: 70, msg: `⚠️ ARIA Alert: Daily loss at 70% of limit. $${remaining} remaining today. Trade carefully.` },
+              { pct: 95, msg: `🚨 <b>ARIA CRITICAL</b>\n95% of daily limit reached.\nONE more losing trade could breach your account. $${remaining} remaining.` },
+              { pct: 85, msg: `🔴 <b>ARIA Alert</b>\nDaily loss at 85% — high risk.\nConsider stopping for today. $${remaining} remaining.` },
+              { pct: 70, msg: `⚠️ <b>ARIA Alert</b>\nDaily loss at 70% of limit.\n$${remaining} remaining today. Trade carefully.` },
             ];
 
             for (const t of thresholds) {
               if (lossPct >= t.pct) {
                 try {
-                  await supabase.functions.invoke('send-whatsapp-alert', {
+                  await supabase.functions.invoke('send-telegram-alert', {
                     body: {
-                      to: (fullAccount as any).whatsapp_number,
-                      body: t.msg,
+                      chat_id: fullAccount.telegram_chat_id,
+                      text: t.msg,
                       user_id: user.id,
                       account_id: accountId,
                       alert_type: `daily_loss_${t.pct}`,
                       threshold_pct: t.pct,
                     },
                   });
-                  toast.info(`WhatsApp alert sent (${t.pct}% threshold)`);
+                  toast.info(`Telegram alert sent (${t.pct}% threshold)`);
                 } catch (e) {
-                  console.error('WhatsApp alert failed:', e);
+                  console.error('Telegram alert failed:', e);
                 }
-                break; // Only send the highest threshold alert
+                break;
               }
             }
           }

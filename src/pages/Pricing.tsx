@@ -19,7 +19,7 @@ const trialFeatures = [
   { text: 'Full dashboard access', included: true },
   { text: 'AI Coach (3/day)', included: true },
   { text: '1 Prop Firm Account', included: true },
-  { text: 'WhatsApp Alerts', included: false },
+  { text: 'Telegram Alerts', included: false },
   { text: 'Multiple accounts', included: false },
   { text: 'Pre-Trade Analysis', included: false },
 ];
