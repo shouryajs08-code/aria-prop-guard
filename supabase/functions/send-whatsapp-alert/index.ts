@@ -33,8 +33,10 @@ Deno.serve(async (req) => {
     const authToken = Deno.env.get('TWILIO_AUTH_TOKEN')
     const fromNumber = Deno.env.get('TWILIO_WHATSAPP_FROM')
 
+    console.log('Twilio env check:', { hasSid: !!accountSid, hasToken: !!authToken, hasFrom: !!fromNumber })
+
     if (!accountSid || !authToken || !fromNumber) {
-      return new Response(JSON.stringify({ error: 'Twilio not configured' }), {
+      return new Response(JSON.stringify({ error: 'Twilio not configured', hasSid: !!accountSid, hasToken: !!authToken, hasFrom: !!fromNumber }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
