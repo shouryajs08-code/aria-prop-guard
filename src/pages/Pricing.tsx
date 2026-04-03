@@ -7,7 +7,7 @@ import ProSuccessOverlay from '@/components/ProSuccessOverlay';
 
 const proFeatures = [
   'Unlimited Rule Monitoring',
-  'WhatsApp Alerts',
+  'Telegram Alerts',
   'AI Coach (unlimited)',
   'Up to 3 Prop Firm Accounts',
   'Auto Trade Journal',
