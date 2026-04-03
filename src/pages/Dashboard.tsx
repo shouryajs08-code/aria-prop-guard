@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useUsageLimits } from '@/hooks/useUsageLimits';
@@ -12,7 +12,7 @@ import ProSuccessOverlay from '@/components/ProSuccessOverlay';
 import { toast } from 'sonner';
 import {
   LayoutDashboard, BookOpen, Brain, Wallet, Bell, Calculator,
-  LogOut, ChevronLeft, ChevronRight, CircleDot, Clock, Crosshair
+  LogOut, ChevronLeft, ChevronRight, CircleDot, Clock, Crosshair, TrendingUp, Plus
 } from 'lucide-react';
 
 interface UserAccount {
@@ -55,6 +55,7 @@ interface LatestAlert {
 const sidebarItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
   { icon: BookOpen, label: 'Journal', href: '/journal' },
+  { icon: TrendingUp, label: 'Forecaster', href: '/forecaster', pro: true },
   { icon: Crosshair, label: 'Pre-Trade', href: '/pre-trade', pro: true },
   { icon: Brain, label: 'AI Coach', href: '/ai-coach' },
   { icon: Wallet, label: 'Accounts', href: '/accounts' },
@@ -68,17 +69,18 @@ function RiskGauge({ label, value, limit, unit }: { label: string; value: number
   const textColor = pct > 85 ? 'text-danger' : pct > 50 ? 'text-primary' : 'text-safe';
 
   return (
-    <div className="rounded-lg border border-border bg-card p-6">
+    <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
       <div className="flex items-center justify-between">
         <span className="font-body text-sm text-muted-foreground">{label}</span>
-        <span className="font-body text-xs text-muted-foreground">Limit: {limit}</span>
+        <span className="font-body text-xs text-muted-foreground hidden sm:inline">Limit: {limit}</span>
       </div>
-      <div className={`mt-3 font-display text-4xl font-semibold ${textColor}`}>
+      <div className={`mt-2 sm:mt-3 font-display text-2xl sm:text-4xl font-semibold ${textColor}`}>
         {value.toFixed(1)}{unit}
       </div>
-      <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
+      <div className="mt-3 sm:mt-4 h-2 overflow-hidden rounded-full bg-muted">
         <div className={`h-full rounded-full transition-all duration-700 ${color}`} style={{ width: `${pct}%` }} />
       </div>
+      <span className="font-body text-[10px] text-muted-foreground sm:hidden mt-1 block">Limit: {limit}</span>
     </div>
   );
 }
@@ -88,6 +90,7 @@ const Dashboard = () => {
   const { subscription } = useSubscription();
   const { isPro, usage } = useUsageLimits();
   const navigate = useNavigate();
+  const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [account, setAccount] = useState<UserAccount | null>(null);
   const [firm, setFirm] = useState<PropFirm | null>(null);
@@ -130,7 +133,6 @@ const Dashboard = () => {
       .limit(10);
     if (tradeData) setTrades(tradeData);
 
-    // Fetch latest alert
     const { data: alertData } = await supabase
       .from('alerts')
       .select('id, alert_type, message, channel, sent_at')
@@ -169,11 +171,15 @@ const Dashboard = () => {
     ? Math.max(0, Math.ceil((new Date(subscription!.trial_ends_at).getTime() - Date.now()) / 86400000))
     : 0;
 
+  // Bottom tab items for mobile (subset)
+  const mobileTabItems = sidebarItems.slice(0, 5);
+
   return (
     <div className="flex min-h-screen bg-background">
       {showSuccess && <ProSuccessOverlay />}
-      {/* Sidebar */}
-      <aside className={`flex flex-col border-r border-border bg-card transition-all ${collapsed ? 'w-16' : 'w-56'}`}>
+
+      {/* Desktop Sidebar */}
+      <aside className={`hidden md:flex flex-col border-r border-border bg-card transition-all ${collapsed ? 'w-16' : 'w-56'}`}>
         <div className="flex h-16 items-center justify-between border-b border-border px-4">
           {!collapsed && (
             <span className="font-display text-sm font-semibold tracking-wide text-primary">ARIA</span>
@@ -184,7 +190,7 @@ const Dashboard = () => {
         </div>
         <nav className="flex-1 space-y-1 p-2">
           {sidebarItems.map((item) => (
-            <Link key={item.label} to={item.href} className="flex items-center gap-3 rounded-md px-3 py-2.5 font-body text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+            <Link key={item.label} to={item.href} className={`flex items-center gap-3 rounded-md px-3 py-2.5 font-body text-sm transition-colors ${location.pathname === item.href ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
               <item.icon className="h-4 w-4 shrink-0" />
               {!collapsed && (
                 <span className="flex items-center gap-2">
@@ -211,29 +217,34 @@ const Dashboard = () => {
       </aside>
 
       {/* Main */}
-      <div className="flex flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between border-b border-border px-6">
-          <div className="flex items-center gap-3">
-            <span className="font-display text-lg font-semibold tracking-wide">
+      <div className="flex flex-1 flex-col pb-16 md:pb-0">
+        <header className="flex h-14 sm:h-16 items-center justify-between border-b border-border px-4 sm:px-6">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="font-display text-base sm:text-lg font-semibold tracking-wide">
               <span className="text-primary">ARIA</span> PropGuard
             </span>
-            <span className="flex items-center gap-1.5 rounded-full bg-safe/10 px-2.5 py-1 font-body text-xs text-safe">
-              <CircleDot className="h-2.5 w-2.5 animate-pulse-gold" /> Live
+            <span className="flex items-center gap-1.5 rounded-full bg-safe/10 px-2 py-0.5 sm:px-2.5 sm:py-1 font-body text-[10px] sm:text-xs text-safe">
+              <CircleDot className="h-2 w-2 sm:h-2.5 sm:w-2.5 animate-pulse-gold" /> Live
             </span>
           </div>
-          <div className="flex items-center gap-4">
-            <LogTradeDialog accountId={account.id} onTradeLogged={fetchData} />
-            <span className="font-body text-sm text-muted-foreground">{user?.email}</span>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="hidden sm:block">
+              <LogTradeDialog accountId={account.id} onTradeLogged={fetchData} />
+            </div>
+            <span className="font-body text-xs sm:text-sm text-muted-foreground hidden sm:inline">{user?.email}</span>
+            <button onClick={handleSignOut} className="md:hidden text-muted-foreground hover:text-foreground">
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           {/* Trial / Upgrade banner */}
           {!isPro && (
-            <div className="mb-6 flex items-center justify-between rounded-lg border border-primary/20 bg-gradient-to-r from-primary/10 to-primary/5 px-5 py-3">
+            <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 rounded-lg border border-primary/20 bg-gradient-to-r from-primary/10 to-primary/5 px-4 sm:px-5 py-3">
               <div className="flex items-center gap-2">
                 <span className="text-lg">⚡</span>
-                <span className="font-body text-sm text-primary font-medium">
+                <span className="font-body text-xs sm:text-sm text-primary font-medium">
                   {isTrialing
                     ? `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left in free trial — Upgrade to Pro`
                     : 'Upgrade to Pro for unlimited access'}
@@ -245,7 +256,7 @@ const Dashboard = () => {
 
           {/* Usage meters (free users) */}
           {!isPro && (
-            <div className="mb-6 grid grid-cols-3 gap-4">
+            <div className="mb-4 sm:mb-6 grid grid-cols-3 gap-2 sm:gap-4">
               <UsageMeter label="Trade Logs" used={usage.trade_logs_count} max={5} isPro={false} />
               <UsageMeter label="AI Analyses" used={usage.ai_analyses_count} max={3} isPro={false} />
               <UsageMeter label="Pre-Trade" used={usage.pre_trade_count} max={0} isPro={false} />
@@ -253,19 +264,19 @@ const Dashboard = () => {
           )}
 
           {/* Account info */}
-          <div className="mb-8">
-            <h1 className="font-display text-2xl font-light">{firm?.name ?? 'Challenge'}</h1>
-            <div className="mt-2 flex items-center gap-4 font-body text-sm text-muted-foreground">
-              <span>Account Size: <span className="text-foreground">${account.account_size.toLocaleString()}</span></span>
-              <span className="text-border">|</span>
-              <span>Challenge Day: <span className="text-primary">{account.challenge_day} / 30</span></span>
-              <span className="text-border">|</span>
+          <div className="mb-6 sm:mb-8">
+            <h1 className="font-display text-xl sm:text-2xl font-light">{firm?.name ?? 'Challenge'}</h1>
+            <div className="mt-2 flex flex-wrap items-center gap-2 sm:gap-4 font-body text-xs sm:text-sm text-muted-foreground">
+              <span>Size: <span className="text-foreground">${account.account_size.toLocaleString()}</span></span>
+              <span className="text-border hidden sm:inline">|</span>
+              <span>Day: <span className="text-primary">{account.challenge_day}/30</span></span>
+              <span className="text-border hidden sm:inline">|</span>
               <span>Status: <span className="text-safe capitalize">{account.status}</span></span>
             </div>
           </div>
 
-          {/* Risk gauges */}
-          <div className="grid gap-4 md:grid-cols-3">
+          {/* Risk gauges - stack on mobile */}
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3">
             <RiskGauge
               label="Daily Loss Used"
               value={dailyLossPct}
@@ -288,7 +299,7 @@ const Dashboard = () => {
 
           {/* Latest Alert */}
           {latestAlert && (
-            <div className="mt-6 rounded-lg border border-primary/20 bg-primary/5 p-4">
+            <div className="mt-4 sm:mt-6 rounded-lg border border-primary/20 bg-primary/5 p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <Bell className="h-4 w-4 text-primary" />
@@ -306,20 +317,20 @@ const Dashboard = () => {
           )}
 
           {/* Trade log */}
-          <div className="mt-8">
+          <div className="mt-6 sm:mt-8">
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-xl font-light">Recent Trades</h2>
+              <h2 className="font-display text-lg sm:text-xl font-light">Recent Trades</h2>
               <span className="font-body text-xs text-muted-foreground">{trades.length} trades</span>
             </div>
-            <div className="mt-4 overflow-hidden rounded-lg border border-border">
-              <table className="w-full font-body text-sm">
+            <div className="mt-4 overflow-x-auto rounded-lg border border-border">
+              <table className="w-full min-w-[500px] font-body text-sm">
                 <thead>
                   <tr className="border-b border-border bg-card">
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Pair</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Session</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Entry → Exit</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">RR</th>
-                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">P&L</th>
+                    <th className="px-3 sm:px-4 py-3 text-left font-medium text-muted-foreground">Pair</th>
+                    <th className="px-3 sm:px-4 py-3 text-left font-medium text-muted-foreground">Session</th>
+                    <th className="px-3 sm:px-4 py-3 text-left font-medium text-muted-foreground">Entry → Exit</th>
+                    <th className="px-3 sm:px-4 py-3 text-left font-medium text-muted-foreground">RR</th>
+                    <th className="px-3 sm:px-4 py-3 text-right font-medium text-muted-foreground">P&L</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -332,11 +343,11 @@ const Dashboard = () => {
                   ) : (
                     trades.map((t) => (
                       <tr key={t.id} className="border-b border-border/50 hover:bg-card/50">
-                        <td className="px-4 py-3 font-medium">{t.pair}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{t.session ?? '—'}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{t.entry_price} → {t.exit_price}</td>
-                        <td className="px-4 py-3 text-primary">{t.rr_ratio?.toFixed(1) ?? '—'}</td>
-                        <td className={`px-4 py-3 text-right font-medium ${t.pnl >= 0 ? 'text-safe' : 'text-danger'}`}>
+                        <td className="px-3 sm:px-4 py-3 font-medium">{t.pair}</td>
+                        <td className="px-3 sm:px-4 py-3 text-muted-foreground">{t.session ?? '—'}</td>
+                        <td className="px-3 sm:px-4 py-3 text-muted-foreground">{t.entry_price} → {t.exit_price}</td>
+                        <td className="px-3 sm:px-4 py-3 text-primary">{t.rr_ratio?.toFixed(1) ?? '—'}</td>
+                        <td className={`px-3 sm:px-4 py-3 text-right font-medium ${t.pnl >= 0 ? 'text-safe' : 'text-danger'}`}>
                           {t.pnl >= 0 ? '+' : ''}${t.pnl.toFixed(2)}
                         </td>
                       </tr>
@@ -348,6 +359,28 @@ const Dashboard = () => {
           </div>
         </main>
       </div>
+
+      {/* Mobile FAB - Log Trade */}
+      <div className="fixed bottom-20 right-4 z-40 md:hidden">
+        <LogTradeDialog accountId={account.id} onTradeLogged={fetchData} />
+      </div>
+
+      {/* Mobile Bottom Tab Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden items-center justify-around border-t border-border bg-card/95 backdrop-blur-lg" style={{ height: 56, paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        {mobileTabItems.map((item) => {
+          const active = location.pathname === item.href;
+          return (
+            <Link
+              key={item.label}
+              to={item.href}
+              className={`flex flex-col items-center justify-center gap-0.5 px-2 py-1 min-h-[44px] min-w-[44px] ${active ? 'text-primary' : 'text-muted-foreground'}`}
+            >
+              <item.icon className="h-5 w-5" />
+              <span className="font-body text-[9px]">{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 };
