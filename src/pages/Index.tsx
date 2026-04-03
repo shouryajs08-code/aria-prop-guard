@@ -307,7 +307,7 @@ function AnimatedHeadline() {
 
   return (
     <div>
-      <h1 className="font-display" style={{ fontSize: 'clamp(56px, 8vw, 90px)', fontWeight: 300, lineHeight: 0.95, letterSpacing: '-0.02em' }}>
+      <h1 className="font-display" style={{ fontSize: 'clamp(42px, 8vw, 90px)', fontWeight: 300, lineHeight: 0.95, letterSpacing: '-0.02em' }}>
         {renderChars(line1, 0)}
         <br />
         {renderChars(line2, line1.length)}
