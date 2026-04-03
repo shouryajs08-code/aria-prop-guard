@@ -80,3 +80,10 @@
     transform: translateY(0);
   }
 }
+
+/* Mobile touch-friendly buttons */
+@media (max-width: 640px) {
+  button, [role="button"], a[class*="btn"] {
+    min-height: 44px;
+  }
+}

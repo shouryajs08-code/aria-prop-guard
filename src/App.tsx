@@ -21,6 +21,7 @@ import PreTrade from './pages/PreTrade';
 import AdminVerifyPro from './pages/AdminVerifyPro';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
+import Forecaster from './pages/Forecaster';
 
 const queryClient = new QueryClient();
 const App = () => (
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
             <Route path="/calculator" element={<ProtectedRoute><Calculator /></ProtectedRoute>} />
             <Route path="/pre-trade" element={<ProtectedRoute><PreTrade /></ProtectedRoute>} />
+            <Route path="/forecaster" element={<ProtectedRoute><Forecaster /></ProtectedRoute>} />
             <Route path="/admin/verify-pro" element={<ProtectedRoute><AdminVerifyPro /></ProtectedRoute>} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/privacy" element={<Privacy />} />
