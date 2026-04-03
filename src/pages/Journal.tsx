@@ -99,7 +99,7 @@ const Journal = () => {
 
       <main className="flex-1 p-6">
         {/* Stats */}
-        <div className="mb-6 grid grid-cols-4 gap-4">
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
           <div className="rounded-lg border border-border bg-card p-4">
             <span className="font-body text-xs text-muted-foreground">Total Trades</span>
             <div className="mt-1 font-display text-2xl font-semibold text-foreground">{filtered.length}</div>
