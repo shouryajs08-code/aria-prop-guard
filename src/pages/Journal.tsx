@@ -139,8 +139,8 @@ const Journal = () => {
         </div>
 
         {/* Table */}
-        <div className="overflow-hidden rounded-lg border border-border">
-          <table className="w-full font-body text-sm">
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <table className="w-full min-w-[640px] font-body text-sm">
             <thead>
               <tr className="border-b border-border bg-card">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Date</th>
