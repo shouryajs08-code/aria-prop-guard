@@ -21,6 +21,7 @@ import PreTrade from './pages/PreTrade';
 import AdminVerifyPro from './pages/AdminVerifyPro';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
+import Forecaster from './pages/Forecaster';
 
 const queryClient = new QueryClient();
 const App = () => (
