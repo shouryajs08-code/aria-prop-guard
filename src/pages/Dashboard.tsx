@@ -92,6 +92,7 @@ const Dashboard = () => {
   const [account, setAccount] = useState<UserAccount | null>(null);
   const [firm, setFirm] = useState<PropFirm | null>(null);
   const [trades, setTrades] = useState<Trade[]>([]);
+  const [latestAlert, setLatestAlert] = useState<LatestAlert | null>(null);
   const [loading, setLoading] = useState(true);
   const { openCheckout, processing: upgrading, showSuccess } = useRazorpay();
 
