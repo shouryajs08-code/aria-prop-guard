@@ -89,9 +89,12 @@ const Journal = () => {
           <BookOpen className="h-5 w-5 text-primary" />
           <span className="font-display text-lg font-semibold tracking-wide">Trade Journal</span>
         </div>
-        <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1.5 border-border text-muted-foreground hover:text-foreground">
-          <Download className="h-3.5 w-3.5" /> Export CSV
-        </Button>
+        <div className="flex items-center gap-2">
+          <TradeImportDialog onImported={() => window.location.reload()} />
+          <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1.5 border-border text-muted-foreground hover:text-foreground">
+            <Download className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Export CSV</span>
+          </Button>
+        </div>
       </header>
 
       <main className="flex-1 p-6">
