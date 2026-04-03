@@ -230,6 +230,7 @@ export type Database = {
           firm_id: string | null
           id: string
           status: string
+          telegram_chat_id: string | null
           user_id: string
           whatsapp_number: string | null
         }
@@ -243,6 +244,7 @@ export type Database = {
           firm_id?: string | null
           id?: string
           status?: string
+          telegram_chat_id?: string | null
           user_id: string
           whatsapp_number?: string | null
         }
@@ -256,6 +258,7 @@ export type Database = {
           firm_id?: string | null
           id?: string
           status?: string
+          telegram_chat_id?: string | null
           user_id?: string
           whatsapp_number?: string | null
         }
