@@ -231,6 +231,7 @@ export type Database = {
           id: string
           status: string
           user_id: string
+          whatsapp_number: string | null
         }
         Insert: {
           account_size?: number
@@ -243,6 +244,7 @@ export type Database = {
           id?: string
           status?: string
           user_id: string
+          whatsapp_number?: string | null
         }
         Update: {
           account_size?: number
@@ -255,6 +257,7 @@ export type Database = {
           id?: string
           status?: string
           user_id?: string
+          whatsapp_number?: string | null
         }
         Relationships: [
           {
