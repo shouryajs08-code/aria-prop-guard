@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BookOpen, ArrowLeft, Search, Download } from 'lucide-react';
+import TradeImportDialog from '@/components/TradeImportDialog';
 
 interface Trade {
   id: string;
