@@ -130,6 +130,16 @@ const Dashboard = () => {
       .limit(10);
     if (tradeData) setTrades(tradeData);
 
+    // Fetch latest alert
+    const { data: alertData } = await supabase
+      .from('alerts')
+      .select('id, alert_type, message, channel, sent_at')
+      .eq('user_id', user.id)
+      .order('sent_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (alertData) setLatestAlert(alertData);
+
     setLoading(false);
   }, [user, navigate]);
 
