@@ -5,8 +5,8 @@ const corsHeaders = {
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts'
 
 const BodySchema = z.object({
-  to: z.string().min(10).max(20),
-  body: z.string().min(1).max(1600),
+  chat_id: z.string().min(1),
+  text: z.string().min(1).max(4096),
   user_id: z.string().uuid(),
   account_id: z.string().uuid(),
   alert_type: z.string(),
@@ -27,41 +27,35 @@ Deno.serve(async (req) => {
       })
     }
 
-    const { to, body, user_id, account_id, alert_type, threshold_pct } = parsed.data
+    const { chat_id, text, user_id, account_id, alert_type, threshold_pct } = parsed.data
 
-    const accountSid = Deno.env.get('TWILIO_ACCOUNT_SID')
-    const authToken = Deno.env.get('TWILIO_AUTH_TOKEN')
-    const fromNumber = Deno.env.get('TWILIO_WHATSAPP_FROM')
+    const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN')
+    console.log('Telegram env check:', { hasToken: !!botToken })
 
-    console.log('Twilio env check:', { hasSid: !!accountSid, hasToken: !!authToken, hasFrom: !!fromNumber })
-
-    if (!accountSid || !authToken || !fromNumber) {
-      return new Response(JSON.stringify({ error: 'Twilio not configured', hasSid: !!accountSid, hasToken: !!authToken, hasFrom: !!fromNumber }), {
+    if (!botToken) {
+      return new Response(JSON.stringify({ error: 'Telegram bot not configured' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    // Send WhatsApp via Twilio
-    const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`
-    const twilioResponse = await fetch(twilioUrl, {
+    // Send via Telegram Bot API
+    const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`
+    const telegramResponse = await fetch(telegramUrl, {
       method: 'POST',
-      headers: {
-        'Authorization': 'Basic ' + btoa(`${accountSid}:${authToken}`),
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        To: `whatsapp:${to}`,
-        From: `whatsapp:${fromNumber}`,
-        Body: body,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id,
+        text,
+        parse_mode: 'HTML',
       }),
     })
 
-    const twilioData = await twilioResponse.json()
+    const telegramData = await telegramResponse.json()
 
-    if (!twilioResponse.ok) {
-      console.error('Twilio error:', twilioData)
-      return new Response(JSON.stringify({ error: 'Failed to send WhatsApp', details: twilioData }), {
+    if (!telegramResponse.ok) {
+      console.error('Telegram error:', telegramData)
+      return new Response(JSON.stringify({ error: 'Failed to send Telegram message', details: telegramData }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -84,13 +78,13 @@ Deno.serve(async (req) => {
         account_id,
         alert_type,
         threshold_pct,
-        message: body,
-        channel: 'whatsapp',
+        message: text,
+        channel: 'telegram',
         sent_at: new Date().toISOString(),
       }),
     })
 
-    return new Response(JSON.stringify({ success: true, sid: twilioData.sid }), {
+    return new Response(JSON.stringify({ success: true, message_id: telegramData.result?.message_id }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error) {

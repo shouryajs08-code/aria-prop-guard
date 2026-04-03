@@ -6,7 +6,7 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 /* ─── Data ─── */
 const features = [
   { icon: Shield, title: 'Real-Time Rule Monitor', desc: 'Instant alerts when you approach daily loss limits, drawdown thresholds, or violate prop firm rules.', tag: 'Risk Engine' },
-  { icon: Bell, title: 'WhatsApp Alerts', desc: 'Get critical risk notifications delivered straight to your WhatsApp — never miss a warning.', tag: 'Notifications' },
+  { icon: Bell, title: 'Telegram Alerts', desc: 'Get critical risk notifications delivered straight to Telegram — never miss a warning.', tag: 'Notifications' },
   { icon: Brain, title: 'AI Trade Coach', desc: 'Personalized AI analysis of your trading patterns with actionable improvement suggestions.', tag: 'Intelligence' },
   { icon: Database, title: 'Prop Firm Rules DB', desc: 'Complete database of rules across 2000+ prop firms, always updated and always accurate.', tag: 'Database' },
   { icon: BookOpen, title: 'Auto Trade Journal', desc: 'Every trade automatically logged with session, risk metrics, and compliance status.', tag: 'Journaling' },

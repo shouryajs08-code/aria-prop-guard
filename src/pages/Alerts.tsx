@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import ProBadge from '@/components/ProBadge';
-import { ArrowLeft, Bell, MessageCircle, Crown, Check } from 'lucide-react';
+import { ArrowLeft, Bell, Send, Crown, Check, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Alert {
@@ -23,14 +23,13 @@ const Alerts = () => {
   const { isPro } = useUsageLimits();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
-  const [whatsappNumber, setWhatsappNumber] = useState('');
-  const [savedNumber, setSavedNumber] = useState('');
+  const [chatId, setChatId] = useState('');
+  const [savedChatId, setSavedChatId] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
-      // Fetch alerts
       const { data: alertData } = await supabase
         .from('alerts')
         .select('*')
@@ -38,35 +37,33 @@ const Alerts = () => {
         .order('sent_at', { ascending: false });
       if (alertData) setAlerts(alertData);
 
-      // Fetch saved WhatsApp number
       const { data: accounts } = await supabase
         .from('user_accounts')
-        .select('whatsapp_number')
+        .select('telegram_chat_id')
         .eq('user_id', user.id)
         .limit(1);
-      if (accounts && accounts.length > 0 && (accounts[0] as any).whatsapp_number) {
-        const num = (accounts[0] as any).whatsapp_number;
-        setWhatsappNumber(num);
-        setSavedNumber(num);
+      if (accounts && accounts.length > 0 && accounts[0].telegram_chat_id) {
+        setChatId(accounts[0].telegram_chat_id);
+        setSavedChatId(accounts[0].telegram_chat_id);
       }
       setLoading(false);
     };
     fetchData();
   }, [user]);
 
-  const saveWhatsappNumber = async () => {
+  const saveChatId = async () => {
     if (!user) return;
     setSaving(true);
     const { error } = await supabase
       .from('user_accounts')
-      .update({ whatsapp_number: whatsappNumber } as any)
+      .update({ telegram_chat_id: chatId })
       .eq('user_id', user.id);
 
     if (error) {
-      toast.error('Failed to save number');
+      toast.error('Failed to save Chat ID');
     } else {
-      setSavedNumber(whatsappNumber);
-      toast.success('WhatsApp number saved!');
+      setSavedChatId(chatId);
+      toast.success('Telegram Chat ID saved!');
     }
     setSaving(false);
   };
@@ -82,43 +79,63 @@ const Alerts = () => {
       </header>
 
       <main className="flex-1 p-6">
-        {/* WhatsApp section */}
+        {/* Telegram section */}
         <div className="mb-6 rounded-lg border border-primary/30 bg-primary/5 p-5">
           <div className="flex items-center gap-3 mb-3">
-            <MessageCircle className="h-5 w-5 text-primary" />
-            <span className="font-body text-sm font-medium text-primary">WhatsApp Breach Alerts</span>
+            <Send className="h-5 w-5 text-primary" />
+            <span className="font-body text-sm font-medium text-primary">Telegram Breach Alerts</span>
             {!isPro && <ProBadge />}
           </div>
           {isPro ? (
-            <div className="space-y-3">
-              <p className="font-body text-xs text-muted-foreground">
-                Get real-time risk alerts on WhatsApp when your daily loss approaches the limit (70%, 85%, 95%).
-              </p>
+            <div className="space-y-4">
+              <div className="rounded-md border border-border bg-card p-4">
+                <p className="font-body text-xs text-muted-foreground mb-2">
+                  <strong className="text-foreground">Step 1:</strong> Open Telegram and start a chat with our bot:
+                </p>
+                <a
+                  href="https://t.me/ARIAPropGuardBot"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-primary/10 px-3 py-1.5 font-body text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
+                >
+                  @ARIAPropGuardBot <ExternalLink className="h-3 w-3" />
+                </a>
+                <p className="font-body text-xs text-muted-foreground mt-2">
+                  <strong className="text-foreground">Step 2:</strong> Send <code className="rounded bg-muted px-1 py-0.5 text-primary">/start</code> — the bot will reply with your Chat ID.
+                </p>
+                <p className="font-body text-xs text-muted-foreground mt-1">
+                  <strong className="text-foreground">Step 3:</strong> Paste your Chat ID below and save.
+                </p>
+              </div>
+
               <div className="flex gap-2">
                 <Input
-                  placeholder="Enter WhatsApp number (+91...)"
-                  value={whatsappNumber}
-                  onChange={(e) => setWhatsappNumber(e.target.value)}
+                  placeholder="Enter Telegram Chat ID"
+                  value={chatId}
+                  onChange={(e) => setChatId(e.target.value)}
                   className="bg-card border-border flex-1"
                 />
                 <Button
                   variant="gold"
                   size="sm"
-                  onClick={saveWhatsappNumber}
-                  disabled={saving || !whatsappNumber || whatsappNumber === savedNumber}
+                  onClick={saveChatId}
+                  disabled={saving || !chatId || chatId === savedChatId}
                 >
-                  {saving ? 'Saving...' : savedNumber ? <><Check className="h-3.5 w-3.5 mr-1" /> Update</> : 'Save'}
+                  {saving ? 'Saving...' : savedChatId ? <><Check className="h-3.5 w-3.5 mr-1" /> Update</> : 'Save'}
                 </Button>
               </div>
-              {savedNumber && (
+              {savedChatId && (
                 <p className="font-body text-[10px] text-safe">
-                  ✓ Alerts active for {savedNumber}
+                  ✓ Telegram alerts active — Chat ID: {savedChatId}
                 </p>
               )}
+              <p className="font-body text-xs text-muted-foreground">
+                You'll receive alerts at 70%, 85%, and 95% of your daily loss limit.
+              </p>
             </div>
           ) : (
             <div className="text-center py-4">
-              <p className="font-body text-sm text-muted-foreground mb-3">WhatsApp breach alerts are a Pro feature.</p>
+              <p className="font-body text-sm text-muted-foreground mb-3">Telegram breach alerts are a Pro feature.</p>
               <Link to="/pricing"><Button variant="gold" size="sm"><Crown className="h-3.5 w-3.5 mr-1" /> Upgrade to Pro</Button></Link>
             </div>
           )}
@@ -143,8 +160,8 @@ const Alerts = () => {
                     <span className="rounded-full bg-primary/10 px-2.5 py-0.5 font-body text-xs font-medium text-primary uppercase tracking-wider">
                       {a.alert_type}
                     </span>
-                    {a.channel === 'whatsapp' && (
-                      <span className="rounded-full bg-safe/10 px-2 py-0.5 font-body text-[10px] text-safe">WhatsApp</span>
+                    {a.channel === 'telegram' && (
+                      <span className="rounded-full bg-safe/10 px-2 py-0.5 font-body text-[10px] text-safe">Telegram</span>
                     )}
                   </div>
                   <span className="font-body text-xs text-muted-foreground">

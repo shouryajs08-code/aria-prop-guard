@@ -293,8 +293,8 @@ const Dashboard = () => {
                 <div className="flex items-center gap-2">
                   <Bell className="h-4 w-4 text-primary" />
                   <span className="font-body text-xs font-medium text-primary uppercase tracking-wider">Latest Alert</span>
-                  {latestAlert.channel === 'whatsapp' && (
-                    <span className="rounded-full bg-safe/10 px-1.5 py-0.5 font-body text-[9px] text-safe">WhatsApp</span>
+                  {latestAlert.channel === 'telegram' && (
+                    <span className="rounded-full bg-safe/10 px-1.5 py-0.5 font-body text-[9px] text-safe">Telegram</span>
                   )}
                 </div>
                 <span className="font-body text-[10px] text-muted-foreground">
