@@ -81,13 +81,13 @@ const Journal = () => {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="flex items-center justify-between border-b border-border px-6 py-4">
+      <header className="flex items-center justify-between border-b border-border px-4 sm:px-6 py-4">
         <div className="flex items-center gap-3">
-          <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
+          <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <BookOpen className="h-5 w-5 text-primary" />
-          <span className="font-display text-lg font-semibold tracking-wide">Trade Journal</span>
+          <span className="font-display text-base sm:text-lg font-semibold tracking-wide">Trade Journal</span>
         </div>
         <div className="flex items-center gap-2">
           <TradeImportDialog onImported={() => window.location.reload()} />
@@ -97,7 +97,7 @@ const Journal = () => {
         </div>
       </header>
 
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-4 sm:p-6">
         {/* Stats */}
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
           <div className="rounded-lg border border-border bg-card p-4">
@@ -121,13 +121,13 @@ const Journal = () => {
         </div>
 
         {/* Filters */}
-        <div className="mb-6 flex flex-wrap items-center gap-3">
+        <div className="mb-6 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3">
           <div className="relative flex-1 min-w-[160px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="Filter by pair..." value={filterPair} onChange={(e) => setFilterPair(e.target.value)} className="pl-9 bg-card border-border" />
           </div>
           <Select value={filterSession} onValueChange={setFilterSession}>
-            <SelectTrigger className="w-[140px] bg-card border-border"><SelectValue placeholder="Session" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[140px] bg-card border-border"><SelectValue placeholder="Session" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Sessions</SelectItem>
               <SelectItem value="London">London</SelectItem>
@@ -135,7 +135,7 @@ const Journal = () => {
               <SelectItem value="Asian">Asian</SelectItem>
             </SelectContent>
           </Select>
-          <Input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} className="w-[160px] bg-card border-border" />
+          <Input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} className="w-full sm:w-[160px] bg-card border-border" />
         </div>
 
         {/* Table */}

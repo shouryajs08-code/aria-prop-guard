@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Shield, Bell, Brain, Database, BookOpen, TrendingUp } from 'lucide-react';
+import { Shield, Bell, Brain, Database, BookOpen, TrendingUp, Menu, X } from 'lucide-react';
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 
 /* ─── Data ─── */
@@ -53,7 +53,7 @@ function useCountUp(target: number, duration: number, start: boolean) {
     const step = (ts: number) => {
       if (!startTime) startTime = ts;
       const p = Math.min((ts - startTime) / duration, 1);
-      const eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
+      const eased = 1 - Math.pow(1 - p, 3);
       setValue(Math.round(eased * target));
       if (p < 1) requestAnimationFrame(step);
     };
@@ -111,18 +111,18 @@ function StatItem({ stat, visible, index }: { stat: typeof statsData[0]; visible
   const count = useCountUp(stat.target, stat.duration, visible);
   return (
     <div
-      className="px-8 py-14 text-center"
+      className="px-4 py-8 sm:px-8 sm:py-14 text-center"
       style={{
         transition: `opacity 0.7s ${EASE} ${index * 0.1}s, transform 0.7s ${EASE} ${index * 0.1}s`,
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0)' : 'translateY(30px)',
       }}
     >
-      <div className="font-display" style={{ fontSize: 42, fontWeight: 300, lineHeight: 1 }}>
+      <div className="font-display" style={{ fontSize: 'clamp(28px, 6vw, 42px)', fontWeight: 300, lineHeight: 1 }}>
         <span style={{ color: '#F5F2EE' }}>{stat.prefix}{count.toLocaleString()}</span>
-        <span className="text-primary" style={{ fontSize: 24 }}>{stat.suffix}</span>
+        <span className="text-primary" style={{ fontSize: 'clamp(16px, 4vw, 24px)' }}>{stat.suffix}</span>
       </div>
-      <div className="mt-3 font-body" style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(245,242,238,0.45)' }}>
+      <div className="mt-2 sm:mt-3 font-body" style={{ fontSize: 'clamp(9px, 2vw, 11px)', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(245,242,238,0.45)' }}>
         {stat.label}
       </div>
     </div>
@@ -136,7 +136,7 @@ function FeatureCard({ f, i, visible }: { f: typeof features[0]; i: number; visi
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="relative p-8 transition-all overflow-hidden"
+      className="relative p-6 sm:p-8 transition-all overflow-hidden"
       style={{
         backgroundColor: hovered ? '#222222' : '#1A1A1A',
         border: '0.5px solid rgba(255,255,255,0.08)',
@@ -147,19 +147,14 @@ function FeatureCard({ f, i, visible }: { f: typeof features[0]; i: number; visi
         transitionDelay: `${i * 0.15}s`,
       }}
     >
-      {/* Gold left border on hover */}
       <div
         className="absolute left-0 top-0 w-[2px] bg-primary transition-all"
-        style={{
-          height: hovered ? '100%' : '0%',
-          transitionDuration: '0.4s',
-          transitionTimingFunction: EASE,
-        }}
+        style={{ height: hovered ? '100%' : '0%', transitionDuration: '0.4s', transitionTimingFunction: EASE }}
       />
       <span className="font-display transition-colors duration-500" style={{ fontSize: 14, color: hovered ? '#F5F2EE' : 'rgba(184,148,42,0.4)' }}>
         {String(i + 1).padStart(2, '0')}
       </span>
-      <h3 className="mt-4 font-display" style={{ fontSize: 22, fontWeight: 400, color: '#F5F2EE' }}>{f.title}</h3>
+      <h3 className="mt-4 font-display" style={{ fontSize: 'clamp(18px, 3vw, 22px)', fontWeight: 400, color: '#F5F2EE' }}>{f.title}</h3>
       <p className="mt-3 font-body" style={{ fontSize: 14, fontWeight: 300, color: 'rgba(245,242,238,0.55)', lineHeight: 1.7 }}>{f.desc}</p>
       <div className="mt-6">
         <span className="text-primary border-b border-primary/30 pb-0.5" style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase' }}>{f.tag}</span>
@@ -177,14 +172,7 @@ function GaugeBar({ gauge, visible, delay }: { gauge: typeof gauges[0]; visible:
         <span className="font-display" style={{ fontSize: 16, fontWeight: 400, color: '#1A1A1A' }}>{gauge.value}%</span>
       </div>
       <div className="w-full rounded-full overflow-hidden" style={{ height: 6, backgroundColor: 'rgba(0,0,0,0.08)' }}>
-        <div
-          className="h-full rounded-full"
-          style={{
-            width: visible ? `${gauge.value}%` : '0%',
-            backgroundColor: gauge.color,
-            transition: `width 1.2s cubic-bezier(0.25, 0.1, 0.25, 1) ${delay}s`,
-          }}
-        />
+        <div className="h-full rounded-full" style={{ width: visible ? `${gauge.value}%` : '0%', backgroundColor: gauge.color, transition: `width 1.2s cubic-bezier(0.25, 0.1, 0.25, 1) ${delay}s` }} />
       </div>
       <div className="mt-1 font-body" style={{ fontSize: 11, color: 'rgba(0,0,0,0.35)' }}>Limit: {gauge.limit}</div>
     </div>
@@ -196,25 +184,10 @@ function SectionTitle({ visible, title, highlight, side = 'left' }: { visible: b
   const isCenter = side === 'center';
   return (
     <div className={isCenter ? 'text-center' : ''}>
-      <div
-        className={`mb-6 flex items-center gap-6 ${isCenter ? 'justify-center' : ''}`}
-        style={{
-          transition: `opacity 0.6s ${EASE}, transform 0.6s ${EASE}`,
-          opacity: visible ? 1 : 0,
-          transform: visible ? 'translateX(0)' : 'translateX(-40px)',
-        }}
-      >
+      <div className={`mb-6 flex items-center gap-6 ${isCenter ? 'justify-center' : ''}`} style={{ transition: `opacity 0.6s ${EASE}, transform 0.6s ${EASE}`, opacity: visible ? 1 : 0, transform: visible ? 'translateX(0)' : 'translateX(-40px)' }}>
         <div className="bg-primary" style={{ height: 1, width: 40, transition: `transform 0.6s ${EASE} 0.3s`, transform: visible ? 'scaleX(1)' : 'scaleX(0)', transformOrigin: 'left' }} />
       </div>
-      <h2
-        className="font-display"
-        style={{
-          fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 300, lineHeight: 1.1,
-          transition: `opacity 0.7s ${EASE} 0.1s, transform 0.7s ${EASE} 0.1s`,
-          opacity: visible ? 1 : 0,
-          transform: visible ? 'translateX(0)' : 'translateX(-40px)',
-        }}
-      >
+      <h2 className="font-display" style={{ fontSize: 'clamp(28px, 5vw, 56px)', fontWeight: 300, lineHeight: 1.1, transition: `opacity 0.7s ${EASE} 0.1s, transform 0.7s ${EASE} 0.1s`, opacity: visible ? 1 : 0, transform: visible ? 'translateX(0)' : 'translateX(-40px)' }}>
         {title} <span className="text-primary italic">{highlight}</span>
       </h2>
     </div>
@@ -223,10 +196,10 @@ function SectionTitle({ visible, title, highlight, side = 'left' }: { visible: b
 
 /* ─── Gradient bridge ─── */
 function Bridge({ from, to }: { from: string; to: string }) {
-  return <div style={{ height: 120, background: `linear-gradient(${from}, ${to})` }} />;
+  return <div style={{ height: 80, background: `linear-gradient(${from}, ${to})` }} />;
 }
 
-/* ─── Custom cursor ─── */
+/* ─── Custom cursor (desktop only) ─── */
 function CustomCursor() {
   const dot = useRef<HTMLDivElement>(null);
   const ring = useRef<HTMLDivElement>(null);
@@ -234,6 +207,7 @@ function CustomCursor() {
   const [clicking, setClicking] = useState(false);
 
   useEffect(() => {
+    if (window.innerWidth < 768) return;
     let mx = 0, my = 0, rx = 0, ry = 0;
     const move = (e: MouseEvent) => { mx = e.clientX; my = e.clientY; };
     const over = (e: MouseEvent) => {
@@ -271,8 +245,8 @@ function CustomCursor() {
 
   return (
     <>
-      <div ref={dot} className="pointer-events-none fixed top-0 left-0 z-[9999] rounded-full bg-primary" style={{ width: dotSize, height: dotSize, marginLeft: -dotSize / 2, marginTop: -dotSize / 2, transition: 'width 0.2s, height 0.2s, margin 0.2s' }} />
-      <div ref={ring} className="pointer-events-none fixed top-0 left-0 z-[9998] rounded-full border transition-all duration-300" style={{ width: ringSize, height: ringSize, marginLeft: -ringSize / 2, marginTop: -ringSize / 2, borderColor: 'rgba(184,148,42,0.4)', backgroundColor: hovering ? 'rgba(184,148,42,0.1)' : 'transparent' }} />
+      <div ref={dot} className="pointer-events-none fixed top-0 left-0 z-[9999] rounded-full bg-primary hidden md:block" style={{ width: dotSize, height: dotSize, marginLeft: -dotSize / 2, marginTop: -dotSize / 2, transition: 'width 0.2s, height 0.2s, margin 0.2s' }} />
+      <div ref={ring} className="pointer-events-none fixed top-0 left-0 z-[9998] rounded-full border transition-all duration-300 hidden md:block" style={{ width: ringSize, height: ringSize, marginLeft: -ringSize / 2, marginTop: -ringSize / 2, borderColor: 'rgba(184,148,42,0.4)', backgroundColor: hovering ? 'rgba(184,148,42,0.1)' : 'transparent' }} />
     </>
   );
 }
@@ -292,15 +266,7 @@ function AnimatedHeadline() {
 
   const renderChars = (text: string, offset: number) =>
     text.split('').map((ch, i) => (
-      <span
-        key={i}
-        className="inline-block"
-        style={{
-          transition: `opacity 0.5s ${EASE} ${(offset + i) * 0.05}s, transform 0.5s ${EASE} ${(offset + i) * 0.05}s`,
-          opacity: show ? 1 : 0,
-          transform: show ? 'translateY(0)' : 'translateY(40px)',
-        }}
-      >
+      <span key={i} className="inline-block" style={{ transition: `opacity 0.5s ${EASE} ${(offset + i) * 0.05}s, transform 0.5s ${EASE} ${(offset + i) * 0.05}s`, opacity: show ? 1 : 0, transform: show ? 'translateY(0)' : 'translateY(40px)' }}>
         {ch === ' ' ? '\u00A0' : ch}
       </span>
     ));
@@ -311,14 +277,8 @@ function AnimatedHeadline() {
         {renderChars(line1, 0)}
         <br />
         {renderChars(line2, line1.length)}
-        <span className="text-primary italic" style={{
-          transition: `opacity 0.5s ${EASE} ${(line1.length + line2.length) * 0.05}s, transform 0.5s ${EASE} ${(line1.length + line2.length) * 0.05}s`,
-          opacity: show ? 1 : 0,
-          display: 'inline-block',
-          transform: show ? 'translateY(0)' : 'translateY(40px)',
-        }}>again.</span>
+        <span className="text-primary italic" style={{ transition: `opacity 0.5s ${EASE} ${(line1.length + line2.length) * 0.05}s, transform 0.5s ${EASE} ${(line1.length + line2.length) * 0.05}s`, opacity: show ? 1 : 0, display: 'inline-block', transform: show ? 'translateY(0)' : 'translateY(40px)' }}>again.</span>
       </h1>
-      {/* Gold line draw */}
       <div className="mt-8 mx-auto" style={{ width: 40, height: 1, backgroundColor: '#B8942A', transition: `transform 0.6s ${EASE}`, transform: lineDrawn ? 'scaleX(1)' : 'scaleX(0)', transformOrigin: 'left' }} />
     </div>
   );
@@ -334,11 +294,12 @@ const Landing = () => {
   const featuresReveal = useReveal(0.15);
   const dashReveal = useReveal(0.15);
   const ctaReveal = useReveal(0.15);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navCompressed = scrollY > 60;
 
   return (
-    <div className="min-h-screen cursor-none" style={{ backgroundColor: '#0A0A0A' }}>
+    <div className="min-h-screen md:cursor-none overflow-x-hidden" style={{ backgroundColor: '#0A0A0A' }}>
       <CustomCursor />
 
       {/* ─── Nav ─── */}
@@ -352,7 +313,7 @@ const Landing = () => {
           borderBottom: navCompressed ? '0.5px solid rgba(245,242,238,0.06)' : '0.5px solid transparent',
         }}
       >
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-8" style={{ height: navCompressed ? 56 : 72, transition: `height 0.5s ${EASE}` }}>
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-8" style={{ height: navCompressed ? 56 : 72, transition: `height 0.5s ${EASE}` }}>
           <Link to="/" className="font-display" style={{ fontWeight: 300, fontSize: 20 }}>
             {'ARIA'.split('').map((ch, i) => (
               <span key={i} className="text-primary inline-block" style={{ animation: `heroFadeUp 0.5s ${EASE} ${i * 0.08}s both` }}>{ch}</span>
@@ -370,61 +331,76 @@ const Landing = () => {
             ))}
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="ghost-light" size="sm" asChild className="text-xs" style={{ letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            <Button variant="ghost-light" size="sm" asChild className="text-xs hidden sm:inline-flex" style={{ letterSpacing: '0.08em', textTransform: 'uppercase' }}>
               <Link to="/login">Log In</Link>
             </Button>
-            <Button variant="gold" size="sm" asChild className="text-xs" style={{ letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            <Button variant="gold" size="sm" asChild className="text-xs hidden sm:inline-flex" style={{ letterSpacing: '0.08em', textTransform: 'uppercase' }}>
               <Link to="/signup">Start Free Trial</Link>
             </Button>
+            <button
+              className="md:hidden text-foreground p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-border/20 px-4 py-4 space-y-3" style={{ backgroundColor: 'rgba(10,10,10,0.95)', backdropFilter: 'blur(20px)' }}>
+            <Link to="/login" className="block font-body text-sm text-foreground/70 py-2" onClick={() => setMobileMenuOpen(false)}>Log In</Link>
+            <Link to="/signup" className="block font-body text-sm text-primary font-medium py-2" onClick={() => setMobileMenuOpen(false)}>Start Free Trial</Link>
+            <Link to="/pricing" className="block font-body text-sm text-foreground/70 py-2" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
+          </div>
+        )}
       </nav>
 
       {/* ═══ HERO ═══ */}
-      <section className="relative flex h-screen flex-col items-center justify-center px-8 overflow-hidden" style={{ backgroundColor: '#0A0A0A' }}>
+      <section className="relative flex h-screen flex-col items-center justify-center px-4 sm:px-8 overflow-hidden" style={{ backgroundColor: '#0A0A0A' }}>
         {/* Noise texture */}
         <div className="absolute inset-0" style={{ opacity: 0.04, backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")', backgroundSize: '128px 128px' }} />
 
-        {/* Ghost ARIA text — parallax */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none" style={{ transform: `translateY(${-scrollY * 0.15}px)` }}>
+        {/* Ghost ARIA text — hidden on mobile */}
+        <div className="absolute inset-0 hidden sm:flex items-center justify-center pointer-events-none select-none" style={{ transform: `translateY(${-scrollY * 0.15}px)` }}>
           <span className="font-display" style={{ fontSize: 'clamp(200px, 30vw, 400px)', fontWeight: 300, color: 'rgba(245,242,238,0.03)', lineHeight: 1 }}>ARIA</span>
         </div>
 
         {/* Grid overlay */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(rgba(245,242,238,1) 1px, transparent 1px), linear-gradient(90deg, rgba(245,242,238,1) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+        <div className="absolute inset-0 opacity-[0.03] hidden sm:block" style={{ backgroundImage: 'linear-gradient(rgba(245,242,238,1) 1px, transparent 1px), linear-gradient(90deg, rgba(245,242,238,1) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
 
-        {/* Live ticker */}
+        {/* Live ticker — hidden on mobile */}
         <LiveTicker />
 
-        <div className="relative z-10 mx-auto max-w-5xl text-center">
+        <div className="relative z-10 mx-auto max-w-5xl text-center px-2">
           {/* Eyebrow */}
           <p className="text-primary" style={{ fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: '"DM Sans"', fontWeight: 500, animation: `heroFadeUp 0.8s ${EASE} 0.3s both` }}>
             AI Risk Intelligence Platform
           </p>
 
           {/* Headline */}
-          <div className="mt-8">
+          <div className="mt-6 sm:mt-8">
             <AnimatedHeadline />
           </div>
 
           {/* Body */}
-          <p className="mx-auto mt-8 font-body" style={{ maxWidth: 400, color: 'rgba(245,242,238,0.55)', fontWeight: 300, fontSize: 16, lineHeight: 1.7, animation: `heroFadeUp 0.8s ${EASE} 0.9s both` }}>
+          <p className="mx-auto mt-6 sm:mt-8 font-body" style={{ maxWidth: 400, color: 'rgba(245,242,238,0.55)', fontWeight: 300, fontSize: 'clamp(14px, 3vw, 16px)', lineHeight: 1.7, animation: `heroFadeUp 0.8s ${EASE} 0.9s both` }}>
             Real-time AI risk monitoring for prop firm challenges. Protect your capital with institutional-grade intelligence.
           </p>
 
           {/* Buttons */}
-          <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center" style={{ animation: `heroFadeUp 0.8s ${EASE} 1.1s both` }}>
-            <Button variant="gold" size="lg" className="px-10 text-xs" style={{ letterSpacing: '0.1em', textTransform: 'uppercase' }} asChild>
+          <div className="mt-8 sm:mt-12 flex flex-col items-center gap-3 sm:gap-4 sm:flex-row sm:justify-center" style={{ animation: `heroFadeUp 0.8s ${EASE} 1.1s both` }}>
+            <Button variant="gold" size="lg" className="w-full sm:w-auto px-10 text-xs" style={{ letterSpacing: '0.1em', textTransform: 'uppercase' }} asChild>
               <Link to="/signup">Start Free Trial</Link>
             </Button>
-            <Button variant="ghost-light" size="lg" className="px-10 text-xs" style={{ letterSpacing: '0.1em', textTransform: 'uppercase' }} asChild>
+            <Button variant="ghost-light" size="lg" className="w-full sm:w-auto px-10 text-xs" style={{ letterSpacing: '0.1em', textTransform: 'uppercase' }} asChild>
               <Link to="/dashboard">See Dashboard</Link>
             </Button>
           </div>
         </div>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-10 right-10 flex flex-col items-center gap-3">
+        {/* Scroll indicator — hidden on mobile */}
+        <div className="absolute bottom-10 right-10 hidden sm:flex flex-col items-center gap-3">
           <span style={{ fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', writingMode: 'vertical-rl', color: 'rgba(245,242,238,0.3)' }}>Scroll</span>
           <div className="bg-primary animate-pulse-gold" style={{ width: 1, height: 60 }} />
         </div>
@@ -437,7 +413,7 @@ const Landing = () => {
       <section ref={statsReveal.ref} style={{ backgroundColor: '#111111' }}>
         <div className="mx-auto grid max-w-7xl grid-cols-2 md:grid-cols-4">
           {statsData.map((s, i) => (
-            <div key={s.label} style={{ borderRight: i < statsData.length - 1 ? '0.5px solid rgba(245,242,238,0.06)' : 'none' }}>
+            <div key={s.label} className="border-b border-border/10 md:border-b-0" style={{ borderRight: i % 2 !== 0 || window.innerWidth >= 768 ? (i < statsData.length - 1 ? '0.5px solid rgba(245,242,238,0.06)' : 'none') : 'none' }}>
               <StatItem stat={s} visible={statsReveal.visible} index={i} />
             </div>
           ))}
@@ -448,10 +424,10 @@ const Landing = () => {
       <Bridge from="#111111" to="#1A1A1A" />
 
       {/* ═══ FEATURES ═══ */}
-      <section ref={featuresReveal.ref} className="px-8 py-32" style={{ backgroundColor: '#1A1A1A' }}>
+      <section ref={featuresReveal.ref} className="px-4 sm:px-8 py-16 sm:py-32" style={{ backgroundColor: '#1A1A1A' }}>
         <div className="mx-auto max-w-7xl">
           <SectionTitle visible={featuresReveal.visible} title="Built for" highlight="serious traders" />
-          <p className="mt-4 font-body mb-16" style={{
+          <p className="mt-4 font-body mb-10 sm:mb-16" style={{
             maxWidth: 420, fontSize: 15, fontWeight: 300, color: 'rgba(245,242,238,0.5)', lineHeight: 1.7,
             transition: `opacity 0.7s ${EASE} 0.3s, transform 0.7s ${EASE} 0.3s`,
             opacity: featuresReveal.visible ? 1 : 0,
@@ -459,7 +435,7 @@ const Landing = () => {
           }}>
             Six intelligent modules working together to protect your prop firm account.
           </p>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((f, i) => (
               <FeatureCard key={f.title} f={f} i={i} visible={featuresReveal.visible} />
             ))}
@@ -471,49 +447,24 @@ const Landing = () => {
       <Bridge from="#1A1A1A" to="#F5F2EE" />
 
       {/* ═══ DASHBOARD PREVIEW (cream) ═══ */}
-      <section ref={dashReveal.ref} className="px-8 py-32" style={{ backgroundColor: '#F5F2EE' }}>
+      <section ref={dashReveal.ref} className="px-4 sm:px-8 py-16 sm:py-32" style={{ backgroundColor: '#F5F2EE' }}>
         <div className="mx-auto max-w-7xl">
-          <div className="mb-6 flex items-center gap-6" style={{
-            transition: `opacity 0.6s ${EASE}, transform 0.6s ${EASE}`,
-            opacity: dashReveal.visible ? 1 : 0,
-            transform: dashReveal.visible ? 'translateX(0)' : 'translateX(-40px)',
-          }}>
+          <div className="mb-6 flex items-center gap-6" style={{ transition: `opacity 0.6s ${EASE}, transform 0.6s ${EASE}`, opacity: dashReveal.visible ? 1 : 0, transform: dashReveal.visible ? 'translateX(0)' : 'translateX(-40px)' }}>
             <div style={{ height: 1, width: 40, backgroundColor: '#B8942A', transition: `transform 0.6s ${EASE} 0.3s`, transform: dashReveal.visible ? 'scaleX(1)' : 'scaleX(0)', transformOrigin: 'left' }} />
             <span style={{ fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#B8942A', fontFamily: '"DM Sans"' }}>Dashboard Preview</span>
           </div>
 
-          <h2 className="font-display mb-4" style={{
-            fontSize: 'clamp(36px, 5vw, 56px)', fontWeight: 300, lineHeight: 1.1, color: '#1A1A1A',
-            transition: `opacity 0.7s ${EASE} 0.1s, transform 0.7s ${EASE} 0.1s`,
-            opacity: dashReveal.visible ? 1 : 0,
-            transform: dashReveal.visible ? 'translateX(0)' : 'translateX(-40px)',
-          }}>
+          <h2 className="font-display mb-4" style={{ fontSize: 'clamp(28px, 5vw, 56px)', fontWeight: 300, lineHeight: 1.1, color: '#1A1A1A', transition: `opacity 0.7s ${EASE} 0.1s, transform 0.7s ${EASE} 0.1s`, opacity: dashReveal.visible ? 1 : 0, transform: dashReveal.visible ? 'translateX(0)' : 'translateX(-40px)' }}>
             Your command <span style={{ color: '#B8942A', fontStyle: 'italic' }}>center</span>
           </h2>
 
-          <p className="font-body mb-16" style={{
-            maxWidth: 420, fontSize: 15, fontWeight: 300, color: 'rgba(26,26,26,0.55)', lineHeight: 1.7,
-            transition: `opacity 0.7s ${EASE} 0.3s, transform 0.7s ${EASE} 0.3s`,
-            opacity: dashReveal.visible ? 1 : 0,
-            transform: dashReveal.visible ? 'translateX(0)' : 'translateX(40px)',
-          }}>
+          <p className="font-body mb-10 sm:mb-16" style={{ maxWidth: 420, fontSize: 15, fontWeight: 300, color: 'rgba(26,26,26,0.55)', lineHeight: 1.7, transition: `opacity 0.7s ${EASE} 0.3s, transform 0.7s ${EASE} 0.3s`, opacity: dashReveal.visible ? 1 : 0, transform: dashReveal.visible ? 'translateX(0)' : 'translateX(40px)' }}>
             Real-time risk gauges, trade logs, and AI insights — all in one elegant view.
           </p>
 
           {/* Dashboard mock card */}
-          <div
-            className="rounded-lg overflow-hidden"
-            style={{
-              backgroundColor: '#FFFFFF',
-              border: '1px solid rgba(0,0,0,0.06)',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.08)',
-              transition: `opacity 0.8s ${EASE} 0.2s, transform 0.8s ${EASE} 0.2s`,
-              opacity: dashReveal.visible ? 1 : 0,
-              transform: dashReveal.visible ? 'translateY(0)' : 'translateY(60px)',
-            }}
-          >
-            {/* Mock header */}
-            <div className="flex items-center justify-between px-8 py-5" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+          <div className="rounded-lg overflow-hidden" style={{ backgroundColor: '#FFFFFF', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 20px 60px rgba(0,0,0,0.08)', transition: `opacity 0.8s ${EASE} 0.2s, transform 0.8s ${EASE} 0.2s`, opacity: dashReveal.visible ? 1 : 0, transform: dashReveal.visible ? 'translateY(0)' : 'translateY(60px)' }}>
+            <div className="flex items-center justify-between px-4 sm:px-8 py-4 sm:py-5" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
               <div className="flex items-center gap-3">
                 <span className="font-display" style={{ fontSize: 16, fontWeight: 400, color: '#B8942A' }}>ARIA</span>
                 <span className="font-display" style={{ fontSize: 16, fontWeight: 300, color: '#1A1A1A' }}>PropGuard</span>
@@ -523,17 +474,14 @@ const Landing = () => {
                 <span className="font-body" style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Live</span>
               </div>
             </div>
-
-            {/* Mock content */}
-            <div className="px-8 py-8">
+            <div className="px-4 sm:px-8 py-6 sm:py-8">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <span className="font-body" style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.35)' }}>Active Account</span>
-                  <h3 className="font-display mt-1" style={{ fontSize: 22, fontWeight: 400, color: '#1A1A1A' }}>FTMO — $100,000</h3>
+                  <h3 className="font-display mt-1" style={{ fontSize: 'clamp(18px, 3vw, 22px)', fontWeight: 400, color: '#1A1A1A' }}>FTMO — $100,000</h3>
                 </div>
                 <span className="font-display" style={{ fontSize: 14, color: '#B8942A' }}>Day 12</span>
               </div>
-
               {gauges.map((g, i) => (
                 <GaugeBar key={g.label} gauge={g} visible={dashReveal.visible} delay={0.4 + i * 0.2} />
               ))}
@@ -546,53 +494,25 @@ const Landing = () => {
       <Bridge from="#F5F2EE" to="#0A0A0A" />
 
       {/* ═══ FOOTER CTA ═══ */}
-      <section ref={ctaReveal.ref} className="relative px-8 py-32 overflow-hidden" style={{ backgroundColor: '#000000' }}>
-        {/* Radial gold glow */}
+      <section ref={ctaReveal.ref} className="relative px-4 sm:px-8 py-16 sm:py-32 overflow-hidden" style={{ backgroundColor: '#000000' }}>
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none" style={{ width: 800, height: 400, background: 'radial-gradient(ellipse at center bottom, rgba(184,148,42,0.08), transparent 70%)' }} />
-
         <div className="relative z-10 mx-auto max-w-3xl text-center">
-          <div className="mx-auto mb-8 flex items-center justify-center gap-6" style={{
-            transition: `opacity 0.6s ${EASE}, transform 0.6s ${EASE}`,
-            opacity: ctaReveal.visible ? 1 : 0,
-          }}>
+          <div className="mx-auto mb-8 flex items-center justify-center gap-6" style={{ transition: `opacity 0.6s ${EASE}`, opacity: ctaReveal.visible ? 1 : 0 }}>
             <div style={{ height: 1, width: 40, backgroundColor: '#B8942A', transition: `transform 0.6s ${EASE} 0.2s`, transform: ctaReveal.visible ? 'scaleX(1)' : 'scaleX(0)', transformOrigin: 'right' }} />
             <span className="text-primary" style={{ fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase' }}>Get Started</span>
             <div style={{ height: 1, width: 40, backgroundColor: '#B8942A', transition: `transform 0.6s ${EASE} 0.2s`, transform: ctaReveal.visible ? 'scaleX(1)' : 'scaleX(0)', transformOrigin: 'left' }} />
           </div>
-
-          {/* Line 1: slides from left */}
-          <h2 className="font-display" style={{
-            fontSize: 'clamp(40px, 6vw, 80px)', fontWeight: 300, lineHeight: 0.95, letterSpacing: '-0.02em', color: '#F5F2EE',
-            transition: `opacity 0.7s ${EASE} 0.2s, transform 0.7s ${EASE} 0.2s`,
-            opacity: ctaReveal.visible ? 1 : 0,
-            transform: ctaReveal.visible ? 'translateX(0)' : 'translateX(-60px)',
-          }}>
+          <h2 className="font-display" style={{ fontSize: 'clamp(32px, 6vw, 80px)', fontWeight: 300, lineHeight: 0.95, letterSpacing: '-0.02em', color: '#F5F2EE', transition: `opacity 0.7s ${EASE} 0.2s, transform 0.7s ${EASE} 0.2s`, opacity: ctaReveal.visible ? 1 : 0, transform: ctaReveal.visible ? 'translateX(0)' : 'translateX(-60px)' }}>
             Trade with
           </h2>
-          {/* Line 2: slides from right */}
-          <h2 className="font-display" style={{
-            fontSize: 'clamp(40px, 6vw, 80px)', fontWeight: 300, lineHeight: 0.95, letterSpacing: '-0.02em',
-            transition: `opacity 0.7s ${EASE} 0.4s, transform 0.8s ${EASE} 0.4s`,
-            opacity: ctaReveal.visible ? 1 : 0,
-            transform: ctaReveal.visible ? 'translateX(0) scale(1)' : 'translateX(60px)',
-          }}>
-            <span className="text-primary italic" style={{
-              display: 'inline-block',
-              transition: `transform 0.6s ${EASE} 0.8s`,
-              transform: ctaReveal.visible ? 'scale(1)' : 'scale(0.9)',
-            }}>precision.</span>
+          <h2 className="font-display" style={{ fontSize: 'clamp(32px, 6vw, 80px)', fontWeight: 300, lineHeight: 0.95, letterSpacing: '-0.02em', transition: `opacity 0.7s ${EASE} 0.4s, transform 0.8s ${EASE} 0.4s`, opacity: ctaReveal.visible ? 1 : 0, transform: ctaReveal.visible ? 'translateX(0)' : 'translateX(60px)' }}>
+            <span className="text-primary italic" style={{ display: 'inline-block', transition: `transform 0.6s ${EASE} 0.8s`, transform: ctaReveal.visible ? 'scale(1)' : 'scale(0.9)' }}>precision.</span>
           </h2>
-
-          <p className="mx-auto mt-8 font-body" style={{
-            maxWidth: 400, fontWeight: 300, color: 'rgba(245,242,238,0.45)', lineHeight: 1.7,
-            transition: `opacity 0.7s ${EASE} 0.6s`,
-            opacity: ctaReveal.visible ? 1 : 0,
-          }}>
+          <p className="mx-auto mt-6 sm:mt-8 font-body" style={{ maxWidth: 400, fontWeight: 300, color: 'rgba(245,242,238,0.45)', lineHeight: 1.7, transition: `opacity 0.7s ${EASE} 0.6s`, opacity: ctaReveal.visible ? 1 : 0 }}>
             Join thousands of prop firm traders who trust ARIA PropGuard to protect their accounts.
           </p>
-
           <div style={{ transition: `opacity 0.7s ${EASE} 0.8s`, opacity: ctaReveal.visible ? 1 : 0 }}>
-            <Button variant="gold" size="lg" className="mt-12 px-12 text-xs" style={{ letterSpacing: '0.1em', textTransform: 'uppercase' }} asChild>
+            <Button variant="gold" size="lg" className="mt-8 sm:mt-12 w-full sm:w-auto px-12 text-xs" style={{ letterSpacing: '0.1em', textTransform: 'uppercase' }} asChild>
               <Link to="/signup">Start Free Trial</Link>
             </Button>
           </div>
@@ -600,12 +520,12 @@ const Landing = () => {
       </section>
 
       {/* ─── Footer ─── */}
-      <footer className="px-8 py-8" style={{ backgroundColor: '#000000', borderTop: '0.5px solid rgba(245,242,238,0.06)' }}>
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
+      <footer className="px-4 sm:px-8 py-6 sm:py-8" style={{ backgroundColor: '#000000', borderTop: '0.5px solid rgba(245,242,238,0.06)' }}>
+        <div className="mx-auto flex max-w-7xl flex-col sm:flex-row items-center justify-between gap-3">
           <span className="font-body" style={{ fontSize: 11, letterSpacing: '0.06em', color: 'rgba(245,242,238,0.3)' }}>© 2026 ARIA PropGuard. All rights reserved.</span>
           <div className="flex items-center gap-6">
-            <Link to="/privacy" className="font-body text-[11px] tracking-wide text-[#F5F2EE]/30 hover:text-[#F5F2EE]/60 transition-colors">Privacy Policy</Link>
-            <Link to="/terms" className="font-body text-[11px] tracking-wide text-[#F5F2EE]/30 hover:text-[#F5F2EE]/60 transition-colors">Terms of Service</Link>
+            <Link to="/privacy" className="font-body text-[11px] tracking-wide text-foreground/30 hover:text-foreground/60 transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="font-body text-[11px] tracking-wide text-foreground/30 hover:text-foreground/60 transition-colors">Terms of Service</Link>
             <span className="font-display text-primary" style={{ fontSize: 14, fontWeight: 300 }}>ARIA</span>
           </div>
         </div>
