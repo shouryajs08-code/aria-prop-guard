@@ -81,13 +81,13 @@ const Journal = () => {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="flex items-center justify-between border-b border-border px-6 py-4">
+      <header className="flex items-center justify-between border-b border-border px-4 sm:px-6 py-4">
         <div className="flex items-center gap-3">
-          <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
+          <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <BookOpen className="h-5 w-5 text-primary" />
-          <span className="font-display text-lg font-semibold tracking-wide">Trade Journal</span>
+          <span className="font-display text-base sm:text-lg font-semibold tracking-wide">Trade Journal</span>
         </div>
         <div className="flex items-center gap-2">
           <TradeImportDialog onImported={() => window.location.reload()} />
