@@ -135,7 +135,7 @@ const Accounts = () => {
         )}
       </header>
 
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-4 sm:p-6">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />

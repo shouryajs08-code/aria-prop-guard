@@ -63,6 +63,7 @@
   html, body {
     @apply text-foreground antialiased;
     background-color: #0A0A0A !important;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -81,9 +82,13 @@
   }
 }
 
-/* Mobile touch-friendly buttons */
+/* Mobile touch-friendly buttons & no overflow */
 @media (max-width: 640px) {
   button, [role="button"], a[class*="btn"] {
     min-height: 44px;
+  }
+
+  body {
+    font-size: 14px;
   }
 }

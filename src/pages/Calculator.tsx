@@ -69,7 +69,7 @@ const Calculator = () => {
         <span className="font-display text-lg font-semibold tracking-wide">Calculator</span>
       </header>
 
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-4 sm:p-6">
         <div className="mx-auto max-w-lg space-y-6">
           {/* Position Size Calculator */}
           <div className="rounded-xl border border-border bg-card p-8">

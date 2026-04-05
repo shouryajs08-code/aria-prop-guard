@@ -121,13 +121,13 @@ const Journal = () => {
         </div>
 
         {/* Filters */}
-        <div className="mb-6 flex flex-wrap items-center gap-3">
+        <div className="mb-6 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3">
           <div className="relative flex-1 min-w-[160px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="Filter by pair..." value={filterPair} onChange={(e) => setFilterPair(e.target.value)} className="pl-9 bg-card border-border" />
           </div>
           <Select value={filterSession} onValueChange={setFilterSession}>
-            <SelectTrigger className="w-[140px] bg-card border-border"><SelectValue placeholder="Session" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[140px] bg-card border-border"><SelectValue placeholder="Session" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Sessions</SelectItem>
               <SelectItem value="London">London</SelectItem>
@@ -135,7 +135,7 @@ const Journal = () => {
               <SelectItem value="Asian">Asian</SelectItem>
             </SelectContent>
           </Select>
-          <Input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} className="w-[160px] bg-card border-border" />
+          <Input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} className="w-full sm:w-[160px] bg-card border-border" />
         </div>
 
         {/* Table */}
