@@ -97,7 +97,7 @@ const Journal = () => {
         </div>
       </header>
 
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-4 sm:p-6">
         {/* Stats */}
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
           <div className="rounded-lg border border-border bg-card p-4">
