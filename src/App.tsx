@@ -18,7 +18,7 @@ import Accounts from "./pages/Accounts";
 import Alerts from "./pages/Alerts";
 import Calculator from "./pages/Calculator";
 import PreTrade from './pages/PreTrade';
-import AdminVerifyPro from './pages/AdminVerifyPro';
+
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Forecaster from './pages/Forecaster';
